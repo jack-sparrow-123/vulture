@@ -292,6 +292,54 @@ document.addEventListener('keyup', (event) => {
 
 
 
+    // script.js
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+// Load the game over sound
+const gameOverSound = new Audio('game-over.mp3.mp3');
+
+// Example game state
+let gameOver = false;
+
+// Example function to check for game over condition
+function checkGameOver() {
+  // Replace this with your actual game over logic
+  if (/* your game over condition */) {
+    gameOver = true;
+    playGameOverSound();
+  }
+}
+
+// Function to play the game over sound
+function playGameOverSound() {
+  gameOverSound.play();
+}
+
+// Example game loop
+function gameLoop() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Check for game over
+  checkGameOver();
+
+  if (!gameOver) {
+    // Continue game logic
+    // ...
+  }
+
+  requestAnimationFrame(gameLoop);
+}
+
+// Start the game loop
+gameLoop();
+
+gameOverSound.addEventListener('error', () => {
+  console.error('Error loading the game over sound.');
+});
+
+
     setInterval(createDrone, 2000);
     setInterval(createSnowflake, 500); // Create snowflakes every 500ms
     setInterval(() => {
