@@ -236,6 +236,30 @@ window.onload = function () {
         lasers = [];
     });
 
+
+
+    document.addEventListener('touchmove', (event) => {
+    event.preventDefault(); // Prevent default touch behavior
+    const rect = canvas.getBoundingClientRect();
+    const touch = event.touches[0]; // Get the first touch point
+    const touchX = touch.clientX - rect.left;
+    const touchY = touch.clientY - rect.top;
+    player.angle = Math.atan2(touchY - player.y, touchX - player.x);
+});
+
+document.addEventListener('touchstart', (event) => {
+    event.preventDefault(); // Prevent default touch behavior
+    // Calculate the position of the tip of the gun
+    const tipX = player.x + Math.cos(player.angle) * (player.size / 2);
+    const tipY = player.y + Math.sin(player.angle) * (player.size / 2);
+    lasers = [{ x: tipX, y: tipY }];
+    assets.laserSound.play();
+});
+
+document.addEventListener('touchend', () => {
+    lasers = [];
+});
+
     setInterval(createDrone, 2000);
     setInterval(createSnowflake, 500); // Create snowflakes every 500ms
     setInterval(() => {
