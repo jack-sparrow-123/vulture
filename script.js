@@ -355,44 +355,6 @@ window.onload = function () {
     });
 
 
-    window.onload = function () {
-    const canvas = document.getElementById('gameCanvas');
-    const context = canvas.getContext('2d');
-    const homePage = document.getElementById('homePage');
-    const playButton = document.getElementById('playButton');
-    const soundButton = document.getElementById('soundButton');
-
-    let isPlaying = false;
-    let isAudioEnabled = true;
-
-    // Show home page initially
-    homePage.style.display = 'block';
-    canvas.style.display = 'none';
-
-    // Play button click handler
-    playButton.addEventListener('click', () => {
-        homePage.style.display = 'none';
-        canvas.style.display = 'block';
-        isPlaying = true;
-        if (!isAudioEnabled) {
-            assets.backgroundMusic.play().catch(error => console.error('Error playing background music:', error));
-            isAudioEnabled = true;
-        }
-        gameLoop();
-    });
-
-    // Sound button click handler
-    soundButton.addEventListener('click', () => {
-        isAudioEnabled = !isAudioEnabled;
-        soundButton.textContent = isAudioEnabled ? 'Sound: On' : 'Sound: Off';
-        if (isAudioEnabled) {
-            assets.backgroundMusic.play();
-        } else {
-            assets.backgroundMusic.pause();
-        }
-    });
-};
-
     setInterval(createDrone, 2000);
     setInterval(createSnowflake, 500);
     setInterval(() => {
