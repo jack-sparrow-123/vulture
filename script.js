@@ -89,15 +89,27 @@ window.onload = function () {
         }
     });
 
-    document.getElementById('pauseButton').addEventListener('click', () => {
-        isPaused = !isPaused;
+   let isPaused = false; // Ensure this variable is declared
+
+document.getElementById('pauseButton').addEventListener('click', () => {
+    isPaused = !isPaused;
+
+    if (assets && assets.backgroundMusic) { // Check if assets exist
         if (isPaused) {
             assets.backgroundMusic.pause();
         } else {
             assets.backgroundMusic.play();
-            gameLoop();
+            if (typeof gameLoop === "function") { // Ensure gameLoop exists
+                gameLoop();
+            } else {
+                console.error("gameLoop function is missing!");
+            }
         }
-    });
+    } else {
+        console.error("Background music not found in assets.");
+    }
+});
+ 
 
     document.getElementById('restartButton').addEventListener('click', () => {
         location.reload();
