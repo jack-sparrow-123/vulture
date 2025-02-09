@@ -260,6 +260,38 @@ document.addEventListener('touchend', () => {
     lasers = [];
 });
 
+
+    // Add keyboard event listeners
+document.addEventListener('keydown', (event) => {
+    switch (event.key) {
+        case 'ArrowUp':
+            player.angle = -Math.PI / 2; // Point upwards
+            break;
+        case 'ArrowDown':
+            player.angle = Math.PI / 2; // Point downwards
+            break;
+        case 'ArrowLeft':
+            player.angle = Math.PI; // Point to the left
+            break;
+        case 'ArrowRight':
+            player.angle = 0; // Point to the right
+            break;
+        case ' ': // Spacebar to shoot
+            const tipX = player.x + Math.cos(player.angle) * (player.size / 2);
+            const tipY = player.y + Math.sin(player.angle) * (player.size / 2);
+            lasers = [{ x: tipX, y: tipY }];
+            assets.laserSound.play();
+            break;
+    }
+});
+
+document.addEventListener('keyup', (event) => {
+    if (event.key === ' ') { // Spacebar released
+        lasers = [];
+    }
+});
+
+
     setInterval(createDrone, 2000);
     setInterval(createSnowflake, 500); // Create snowflakes every 500ms
     setInterval(() => {
