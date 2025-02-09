@@ -354,19 +354,8 @@ window.onload = function () {
         }
     });
 
-    setInterval(createDrone, 2000);
-    setInterval(createSnowflake, 500);
-    setInterval(() => {
-        if (score > 50) createBlackDrone();
-        if (score > 100) createBomb();
-    }, 3000);
 
-    gameLoop();
-};
-
-
-
-window.onload = function () {
+    window.onload = function () {
     const canvas = document.getElementById('gameCanvas');
     const context = canvas.getContext('2d');
     const homePage = document.getElementById('homePage');
@@ -403,3 +392,17 @@ window.onload = function () {
         }
     });
 };
+
+    setInterval(createDrone, 2000);
+    setInterval(createSnowflake, 500);
+    setInterval(() => {
+        if (score > 50) createBlackDrone();
+        if (score > 100) createBomb();
+    }, 3000);
+
+    gameLoop();
+};
+
+
+
+
