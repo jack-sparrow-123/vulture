@@ -37,6 +37,8 @@ window.onload = function () {
     let drones = [], blackDrones = [], bombs = [], lasers = [], explosions = [], snowflakes = [], score = 0;
     let isAudioEnabled = false;
     let gameOver = false;
+    let laserMode = 'highBeam'; // 'highBeam' or 'dropByDrop'
+    let laserDrops = [];
 
     window.addEventListener('resize', () => {
         canvas.width = window.innerWidth;
@@ -142,7 +144,7 @@ window.onload = function () {
             context.drawImage(assets.snowflake, snowflake.x, snowflake.y, 20, 20);
         });
 
-        if (lasers.length > 0) {
+        if (laserMode === 'highBeam' && lasers.length > 0) {
             let beam = lasers[0];
             const tipX = player.x + Math.cos(player.angle) * (player.size / 2);
             const tipY = player.y + Math.sin(player.angle) * (player.size / 2);
@@ -195,6 +197,53 @@ window.onload = function () {
                     assets.explosionSound.play();
                 }
             });
+        } else if (laserMode === 'dropByDrop' && laserDrops.length > 0) {
+            laserDrops.forEach((drop, i) => {
+                drop.x += Math.cos(drop.angle) * drop.speed;
+                drop.y += Math.sin(drop.angle) * drop.speed;
+
+                context.fillStyle = 'red';
+                context.beginPath();
+                context.arc(drop.x, drop.y, 5, 0, Math.PI * 2);
+                context.fill();
+
+                drones.forEach((drone, j) => {
+                    const droneRect = { x: drone.x, y: drone.y, width: 80, height: 80 };
+                    if (pointInRect(drop.x, drop.y, droneRect)) {
+                        explosions.push({ x: drone.x, y: drone.y, timer: 30 });
+                        drones.splice(j, 1);
+                        score += 10;
+                        assets.explosionSound.play();
+                        laserDrops.splice(i, 1);
+                    }
+                });
+
+                blackDrones.forEach((drone, j) => {
+                    const droneRect = { x: drone.x, y: drone.y, width: 80, height: 80 };
+                    if (pointInRect(drop.x, drop.y, droneRect)) {
+                        explosions.push({ x: drone.x, y: drone.y, timer: 30 });
+                        blackDrones.splice(j, 1);
+                        gameOver = true;
+                        assets.explosionSound.play();
+                        laserDrops.splice(i, 1);
+                    }
+                });
+
+                bombs.forEach((bomb, j) => {
+                    const bombRect = { x: bomb.x, y: bomb.y, width: 60, height: 60 };
+                    if (pointInRect(drop.x, drop.y, bombRect)) {
+                        explosions.push({ x: bomb.x, y: bomb.y, timer: 30 });
+                        bombs.splice(j, 1);
+                        gameOver = true;
+                        assets.explosionSound.play();
+                        laserDrops.splice(i, 1);
+                    }
+                });
+
+                if (drop.x < 0 || drop.x > canvas.width || drop.y < 0 || drop.y > canvas.height) {
+                    laserDrops.splice(i, 1);
+                }
+            });
         }
 
         explosions.forEach((exp, i) => {
@@ -217,14 +266,23 @@ window.onload = function () {
     });
 
     document.addEventListener('mousedown', () => {
-        const tipX = player.x + Math.cos(player.angle) * (player.size / 2);
-        const tipY = player.y + Math.sin(player.angle) * (player.size / 2);
-        lasers = [{ x: tipX, y: tipY }];
-        assets.laserSound.play();
+        if (laserMode === 'highBeam') {
+            const tipX = player.x + Math.cos(player.angle) * (player.size / 2);
+            const tipY = player.y + Math.sin(player.angle) * (player.size / 2);
+            lasers = [{ x: tipX, y: tipY }];
+            assets.laserSound.play();
+        } else if (laserMode === 'dropByDrop') {
+            const tipX = player.x + Math.cos(player.angle) * (player.size / 2);
+            const tipY = player.y + Math.sin(player.angle) * (player.size / 2);
+            laserDrops.push({ x: tipX, y: tipY, angle: player.angle, speed: 10 });
+            assets.laserSound.play();
+        }
     });
 
     document.addEventListener('mouseup', () => {
-        lasers = [];
+        if (laserMode === 'highBeam') {
+            lasers = [];
+        }
     });
 
     document.addEventListener('touchmove', (event) => {
@@ -238,14 +296,23 @@ window.onload = function () {
 
     document.addEventListener('touchstart', (event) => {
         event.preventDefault();
-        const tipX = player.x + Math.cos(player.angle) * (player.size / 2);
-        const tipY = player.y + Math.sin(player.angle) * (player.size / 2);
-        lasers = [{ x: tipX, y: tipY }];
-        assets.laserSound.play();
+        if (laserMode === 'highBeam') {
+            const tipX = player.x + Math.cos(player.angle) * (player.size / 2);
+            const tipY = player.y + Math.sin(player.angle) * (player.size / 2);
+            lasers = [{ x: tipX, y: tipY }];
+            assets.laserSound.play();
+        } else if (laserMode === 'dropByDrop') {
+            const tipX = player.x + Math.cos(player.angle) * (player.size / 2);
+            const tipY = player.y + Math.sin(player.angle) * (player.size / 2);
+            laserDrops.push({ x: tipX, y: tipY, angle: player.angle, speed: 10 });
+            assets.laserSound.play();
+        }
     });
 
     document.addEventListener('touchend', () => {
-        lasers = [];
+        if (laserMode === 'highBeam') {
+            lasers = [];
+        }
     });
 
     document.addEventListener('keydown', (event) => {
@@ -263,16 +330,26 @@ window.onload = function () {
                 player.angle = 0;
                 break;
             case ' ':
-                const tipX = player.x + Math.cos(player.angle) * (player.size / 2);
-                const tipY = player.y + Math.sin(player.angle) * (player.size / 2);
-                lasers = [{ x: tipX, y: tipY }];
-                assets.laserSound.play();
+                if (laserMode === 'highBeam') {
+                    const tipX = player.x + Math.cos(player.angle) * (player.size / 2);
+                    const tipY = player.y + Math.sin(player.angle) * (player.size / 2);
+                    lasers = [{ x: tipX, y: tipY }];
+                    assets.laserSound.play();
+                } else if (laserMode === 'dropByDrop') {
+                    const tipX = player.x + Math.cos(player.angle) * (player.size / 2);
+                    const tipY = player.y + Math.sin(player.angle) * (player.size / 2);
+                    laserDrops.push({ x: tipX, y: tipY, angle: player.angle, speed: 10 });
+                    assets.laserSound.play();
+                }
+                break;
+            case 'm':
+                laserMode = laserMode === 'highBeam' ? 'dropByDrop' : 'highBeam';
                 break;
         }
     });
 
     document.addEventListener('keyup', (event) => {
-        if (event.key === ' ') {
+        if (event.key === ' ' && laserMode === 'highBeam') {
             lasers = [];
         }
     });
