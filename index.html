@@ -5,9 +5,89 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Laser Gun vs. Drones</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+    }
+    .homepage {
+      text-align: center;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .logo {
+      width: 100px;
+      height: 100px;
+      margin-bottom: 20px;
+    }
+    .game-name {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+    .controls button {
+      margin: 5px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      background-color: #007bff;
+      color: white;
+    }
+    .controls button:hover {
+      background-color: #0056b3;
+    }
+    #gameCanvas {
+      display: none; /* Hide the canvas initially */
+    }
+  </style>
 </head>
 <body>
+  <!-- Homepage -->
+  <div class="homepage" id="homepage">
+    <img src="logo.png" alt="Game Logo" class="logo">
+    <div class="game-name">Laser Gun vs. Drones</div>
+    <div class="controls">
+      <button id="playButton">Play</button>
+      <button id="soundButton">Sound On/Off</button>
+    </div>
+  </div>
+
+  <!-- Game Canvas -->
   <canvas id="gameCanvas" width="800" height="600"></canvas>
+
   <script src="script.js"></script>
+  <script>
+    // JavaScript to handle homepage and game start
+    const homepage = document.getElementById('homepage');
+    const gameCanvas = document.getElementById('gameCanvas');
+    const playButton = document.getElementById('playButton');
+    const soundButton = document.getElementById('soundButton');
+
+    let soundOn = true;
+
+    // Start the game when the Play button is clicked
+    playButton.addEventListener('click', () => {
+      homepage.style.display = 'none'; // Hide the homepage
+      gameCanvas.style.display = 'block'; // Show the game canvas
+      // Add your game initialization logic here
+    });
+
+    // Toggle sound on/off
+    soundButton.addEventListener('click', () => {
+      soundOn = !soundOn;
+      soundButton.textContent = soundOn ? 'Sound On' : 'Sound Off';
+      // Add your sound toggle logic here
+    });
+  </script>
 </body>
 </html>
