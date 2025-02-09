@@ -8,61 +8,6 @@
 </head>
 <body>
   <canvas id="gameCanvas" width="800" height="600"></canvas>
-
-   <audio id="gameOverSound" src="game-over.mp3.mp3"></audio> <!-- Add your sound file here -->
-
-  <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const gameOverSound = document.getElementById('gameOverSound');
-
-    let gameOver = false;
-
-    // Game variables
-    let player = { x: 400, y: 500, width: 50, height: 50 };
-    let enemy = { x: 400, y: 100, width: 50, height: 50 };
-
-    function draw() {
-      // Clear the canvas
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Draw player
-      ctx.fillStyle = 'blue';
-      ctx.fillRect(player.x, player.y, player.width, player.height);
-
-      // Draw enemy
-      ctx.fillStyle = 'red';
-      ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
-
-      // Check for collision (simple game over condition)
-      if (
-        player.x < enemy.x + enemy.width &&
-        player.x + player.width > enemy.x &&
-        player.y < enemy.y + enemy.height &&
-        player.y + player.height > enemy.y
-      ) {
-        gameOver = true;
-      }
-
-      // If game over, display message and play sound
-      if (gameOver) {
-        ctx.fillStyle = 'white';
-        ctx.font = '48px Arial';
-        ctx.fillText('Game Over!', 300, 300);
-
-        // Play the game over sound
-        if (gameOverSound.paused) {
-          gameOverSound.play();
-        }
-      } else {
-        // Continue game logic
-        requestAnimationFrame(draw);
-      }
-    }
-
-    // Start the game loop
-    draw();
-  </script>
   <script src="script.js"></script>
 </body>
 </html>
