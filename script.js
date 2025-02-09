@@ -1,144 +1,158 @@
-window.onload = function () {
-    alert("Press 'M' on laptops or double-tap the gun on phones to switch laser modes.");
+assets.player.src = 'gun2.png';
+assets.drone.src = 'drone2.png';
+assets.blackDrone.src = 'blackdrone.png';
+assets.bomb.src = 'bomb.png';
+assets.explosion.src = 'explosion.png';
+assets.snowflake.src = 'snowflake.png';
+assets.gameOverSound = new Audio('game-over.mp3'); 
 
-    const canvas = document.getElementById('gameCanvas');
-    const context = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    function drawRotatedImage(img, x, y, angle, size) {
-        context.save();
-        context.translate(x, y);
-        context.rotate(angle);
-        context.drawImage(img, -size / 2, -size / 2, size, size);
-        context.restore();
+document.addEventListener('click', () => {
+    if (!isAudioEnabled) {
+        assets.backgroundMusic.play().catch(error => console.error('Error playing background music:', error));
+        isAudioEnabled = true;
     }
-
-    // Load assets
-    const assets = {
-        player: new Image(),
-        drone: new Image(),
-        blackDrone: new Image(),
-        bomb: new Image(),
-        explosion: new Image(),
-        snowflake: new Image(),
-        laserSound: new Audio('attack-laser-128280.mp3'),
-        explosionSound: new Audio('small-explosion-129477.mp3'),
-        backgroundMusic: new Audio('lonely-winter-breeze-36867.mp3'),
-        gameOverSound: new Audio('game-over.mp3.mp3') // Fixed file name
-    };
-    
-    assets.player.src = 'gun2.png.png';
-    assets.drone.src = 'drone2.png.png';
-    assets.blackDrone.src = 'blackdrone.png.png';
-    assets.bomb.src = 'bomb.png.png';
-    assets.explosion.src = 'explosion.png.png';
-    assets.snowflake.src = 'snowflake.png.png';
-    assets.backgroundMusic.loop = true;
-
-    let player = { x: canvas.width / 2, y: canvas.height - 100, size: 80, angle: 0 };
-    let drones = [], blackDrones = [], bombs = [], lasers = [], explosions = [], snowflakes = [], score = 0;
-    let isAudioEnabled = false;
-    let gameOver = false;
-    let laserMode = 'highBeam';
-    let laserDrops = [];
-    let isPlaying = false;
-    let isPaused = false;
-
-    window.addEventListener('resize', () => {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        player.x = canvas.width / 2;
-        player.y = canvas.height - 100;
-    });
-
-    document.addEventListener('click', () => {
-        if (!isAudioEnabled) {
-            assets.backgroundMusic.play().catch(error => console.error('Error playing background music:', error));
-            isAudioEnabled = true;
-        }
-    });
-
-    function gameLoop() {
-        if (gameOver) {
-            context.fillStyle = 'white';
-            context.font = '40px Arial';
-            context.fillText('Game Over!', canvas.width / 2 - 100, canvas.height / 2);
-            context.fillText('Final Score: ' + score, canvas.width / 2 - 120, canvas.height / 2 + 50);
-            assets.gameOverSound.play();
-            return;
-        }
-
-        if (isPaused) return; // Prevent running the game loop when paused
-
-        context.fillStyle = '#001F3F';
-        context.fillRect(0, 0, canvas.width, canvas.height);
-        
-        drawRotatedImage(assets.player, player.x, player.y, player.angle, player.size);
-
-        requestAnimationFrame(gameLoop);
-    }
-
-    // Button event listeners
-    document.getElementById('playButton').addEventListener('click', () => {
-        if (!isPlaying) {
-            isPlaying = true;
-            isPaused = false;
-            gameLoop();
-            assets.backgroundMusic.play();
-        }
-    });
-
-   
-
+});
 document.getElementById('pauseButton').addEventListener('click', () => {
     isPaused = !isPaused;
 
-    if (assets && assets.backgroundMusic) { // Check if assets exist
-        if (isPaused) {
-            assets.backgroundMusic.pause();
-        } else {
-            assets.backgroundMusic.play();
-            if (typeof gameLoop === "function") { // Ensure gameLoop exists
-                gameLoop();
-            } else {
-                console.error("gameLoop function is missing!");
-            }
-        }
+    if (isPaused) {
+        assets.backgroundMusic.pause();
     } else {
-        console.error("Background music not found in assets.");
+        assets.backgroundMusic.play();
+        gameLoop(); 
     }
 });
- 
 
-    document.getElementById('restartButton').addEventListener('click', () => {
-        location.reload();
+
+function createDrone() {
+    drones.push({
+        x: Math.random() * canvas.width,
+        y: -50,
+        size: 50,
+        speed: 2 + Math.random() * 3
     });
+}
 
-    document.getElementById('soundButton').addEventListener('click', () => {
-        isAudioEnabled = !isAudioEnabled;
-        document.getElementById('soundButton').textContent = isAudioEnabled ? 'Sound: On' : 'Sound: Off';
-        assets.backgroundMusic.muted = !isAudioEnabled;
-        assets.laserSound.muted = !isAudioEnabled;
-        assets.explosionSound.muted = !isAudioEnabled;
-        assets.gameOverSound.muted = !isAudioEnabled;
+function createBlackDrone() {
+    blackDrones.push({
+        x: Math.random() * canvas.width,
+        y: -50,
+        size: 60,
+        speed: 3 + Math.random() * 2
     });
+}
 
-    function preloadAudio(audio) {
-        audio.preload = 'auto';
-        audio.load();
+function createBomb() {
+    bombs.push({
+        x: Math.random() * canvas.width,
+        y: -50,
+        size: 40,
+        speed: 4 + Math.random() * 2
+    });
+}
+
+function createSnowflake() {
+    snowflakes.push({
+        x: Math.random() * canvas.width,
+        y: -10,
+        size: 20 + Math.random() * 10,
+        speed: 1 + Math.random() * 2
+    });
+}
+
+
+function gameLoop() {
+    if (gameOver) {
+        context.fillStyle = 'white';
+        context.font = '40px Arial';
+        context.fillText('Game Over!', canvas.width / 2 - 100, canvas.height / 2);
+        context.fillText('Final Score: ' + score, canvas.width / 2 - 120, canvas.height / 2 + 50);
+        assets.gameOverSound.play();
+        return;
     }
 
-    preloadAudio(assets.laserSound);
-    preloadAudio(assets.explosionSound);
-    preloadAudio(assets.backgroundMusic);
-    preloadAudio(assets.gameOverSound);
+    if (isPaused) return;
 
-    // Spawn elements at intervals
-    setInterval(() => createDrone(), 2000);
-    setInterval(() => createSnowflake(), 500);
-    setInterval(() => {
-        if (score > 50) createBlackDrone();
-        if (score > 100) createBomb();
-    }, 3000);
-};
+    // Clear the canvas
+    context.fillStyle = '#001F3F';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw player
+    drawRotatedImage(assets.player, player.x, player.y, player.angle, player.size);
+
+    // Update and draw drones
+    drones.forEach((drone, index) => {
+        drone.y += drone.speed;
+        context.drawImage(assets.drone, drone.x, drone.y, drone.size, drone.size);
+
+        // Remove drones that go off-screen
+        if (drone.y > canvas.height) {
+            drones.splice(index, 1);
+        }
+    });
+
+    // Update and draw other elements (blackDrones, bombs, snowflakes, etc.)
+    // Add similar logic for blackDrones, bombs, snowflakes, lasers, and explosions
+
+    requestAnimationFrame(gameLoop);
+}
+
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'm' || event.key === 'M') {
+        laserMode = laserMode === 'highBeam' ? 'lowBeam' : 'highBeam';
+        alert('Laser mode switched to: ' + laserMode);
+    }
+});
+
+canvas.addEventListener('dblclick', () => {
+    laserMode = laserMode === 'highBeam' ? 'lowBeam' : 'highBeam';
+    alert('Laser mode switched to: ' + laserMode);
+});
+
+
+function loadImage(src) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.src = src;
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+    });
+}
+
+function loadAudio(src) {
+    return new Promise((resolve, reject) => {
+        const audio = new Audio(src);
+        audio.oncanplaythrough = () => resolve(audio);
+        audio.onerror = reject;
+    });
+}
+
+Promise.all([
+    loadImage('gun2.png'),
+    loadImage('drone2.png'),
+    loadImage('blackdrone.png'),
+    loadImage('bomb.png'),
+    loadImage('explosion.png'),
+    loadImage('snowflake.png'),
+    loadAudio('attack-laser-128280.mp3'),
+    loadAudio('small-explosion-129477.mp3'),
+    loadAudio('lonely-winter-breeze-36867.mp3'),
+    loadAudio('game-over.mp3')
+]).then((loadedAssets) => {
+    // Assign loaded assets to the assets object
+    assets.player = loadedAssets[0];
+    assets.drone = loadedAssets[1];
+    assets.blackDrone = loadedAssets[2];
+    assets.bomb = loadedAssets[3];
+    assets.explosion = loadedAssets[4];
+    assets.snowflake = loadedAssets[5];
+    assets.laserSound = loadedAssets[6];
+    assets.explosionSound = loadedAssets[7];
+    assets.backgroundMusic = loadedAssets[8];
+    assets.gameOverSound = loadedAssets[9];
+
+    // Start the game
+    gameLoop();
+}).catch((error) => {
+    console.error('Error loading assets:', error);
+});
