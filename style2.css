@@ -1,0 +1,13 @@
+body {
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #a9d0f5; /* Wintery background color */
+  }
+  
+  canvas {
+    border: 1px solid #000;
+  }
+  
