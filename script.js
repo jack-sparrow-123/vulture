@@ -358,7 +358,7 @@ window.onload = function () {
 
     let isPlaying = false;
 let isPaused = false;
-let isAudioEnabled = true;
+
 
 
 
