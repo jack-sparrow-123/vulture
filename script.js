@@ -22,7 +22,8 @@ window.onload = function () {
         snowflake: new Image(),
         laserSound: new Audio('attack-laser-128280.mp3'),
         explosionSound: new Audio('small-explosion-129477.mp3'),
-        backgroundMusic: new Audio('lonely-winter-breeze-36867.mp3')
+        backgroundMusic: new Audio('lonely-winter-breeze-36867.mp3'),
+        gameOverSound: new Audio('game-over.mp3.mp3')
     };
     assets.player.src = 'gun2.png.png';
     assets.drone.src = 'drone2.png.png';
@@ -67,28 +68,24 @@ window.onload = function () {
         snowflakes.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 1 });
     }
 
-    // Function to check if a point is inside a rectangle
     function pointInRect(px, py, rect) {
         return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height;
     }
 
-    // Function to check if a line intersects with a rectangle
     function lineIntersectsRect(lineStart, lineEnd, rect) {
         const { x: x1, y: y1 } = lineStart;
         const { x: x2, y: y2 } = lineEnd;
         const { x: rx, y: ry, width: rw, height: rh } = rect;
 
-        // Check if the line starts or ends inside the rectangle
         if (pointInRect(x1, y1, rect) || pointInRect(x2, y2, rect)) {
             return true;
         }
 
-        // Check if any of the rectangle's edges intersect with the line
         const edges = [
-            { x1: rx, y1: ry, x2: rx + rw, y2: ry }, // Top edge
-            { x1: rx + rw, y1: ry, x2: rx + rw, y2: ry + rh }, // Right edge
-            { x1: rx, y1: ry + rh, x2: rx + rw, y2: ry + rh }, // Bottom edge
-            { x1: rx, y1: ry, x2: rx, y2: ry + rh } // Left edge
+            { x1: rx, y1: ry, x2: rx + rw, y2: ry },
+            { x1: rx + rw, y1: ry, x2: rx + rw, y2: ry + rh },
+            { x1: rx, y1: ry + rh, x2: rx + rw, y2: ry + rh },
+            { x1: rx, y1: ry, x2: rx, y2: ry + rh }
         ];
 
         for (let edge of edges) {
@@ -100,10 +97,9 @@ window.onload = function () {
         return false;
     }
 
-    // Function to check if two lines intersect
     function linesIntersect(x1, y1, x2, y2, x3, y3, x4, y4) {
         const denominator = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
-        if (denominator === 0) return false; // Lines are parallel
+        if (denominator === 0) return false;
 
         const ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denominator;
         const ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denominator;
@@ -116,6 +112,8 @@ window.onload = function () {
             context.fillStyle = 'white';
             context.font = '40px Arial';
             context.fillText('Game Over!', canvas.width / 2 - 100, canvas.height / 2);
+            context.fillText('Final Score: ' + score, canvas.width / 2 - 120, canvas.height / 2 + 50);
+            assets.gameOverSound.play();
             return;
         }
 
@@ -146,15 +144,12 @@ window.onload = function () {
 
         if (lasers.length > 0) {
             let beam = lasers[0];
-            // Calculate the position of the tip of the gun
             const tipX = player.x + Math.cos(player.angle) * (player.size / 2);
             const tipY = player.y + Math.sin(player.angle) * (player.size / 2);
 
-            // Update the laser beam's position based on the gun's angle
             beam.x = tipX;
             beam.y = tipY;
 
-            // Draw the laser beam
             context.strokeStyle = 'red';
             context.lineWidth = 4;
             context.beginPath();
@@ -162,7 +157,6 @@ window.onload = function () {
             context.lineTo(tipX + Math.cos(player.angle) * canvas.height, tipY + Math.sin(player.angle) * canvas.height);
             context.stroke();
 
-            // Check for collisions with drones
             drones.forEach((drone, i) => {
                 const droneRect = { x: drone.x, y: drone.y, width: 80, height: 80 };
                 const lineStart = { x: tipX, y: tipY };
@@ -176,7 +170,6 @@ window.onload = function () {
                 }
             });
 
-            // Check for collisions with black drones
             blackDrones.forEach((drone, i) => {
                 const droneRect = { x: drone.x, y: drone.y, width: 80, height: 80 };
                 const lineStart = { x: tipX, y: tipY };
@@ -190,7 +183,6 @@ window.onload = function () {
                 }
             });
 
-            // Check for collisions with bombs
             bombs.forEach((bomb, i) => {
                 const bombRect = { x: bomb.x, y: bomb.y, width: 60, height: 60 };
                 const lineStart = { x: tipX, y: tipY };
@@ -225,7 +217,6 @@ window.onload = function () {
     });
 
     document.addEventListener('mousedown', () => {
-        // Calculate the position of the tip of the gun
         const tipX = player.x + Math.cos(player.angle) * (player.size / 2);
         const tipY = player.y + Math.sin(player.angle) * (player.size / 2);
         lasers = [{ x: tipX, y: tipY }];
@@ -236,112 +227,58 @@ window.onload = function () {
         lasers = [];
     });
 
-
-
     document.addEventListener('touchmove', (event) => {
-    event.preventDefault(); // Prevent default touch behavior
-    const rect = canvas.getBoundingClientRect();
-    const touch = event.touches[0]; // Get the first touch point
-    const touchX = touch.clientX - rect.left;
-    const touchY = touch.clientY - rect.top;
-    player.angle = Math.atan2(touchY - player.y, touchX - player.x);
-});
+        event.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        const touch = event.touches[0];
+        const touchX = touch.clientX - rect.left;
+        const touchY = touch.clientY - rect.top;
+        player.angle = Math.atan2(touchY - player.y, touchX - player.x);
+    });
 
-document.addEventListener('touchstart', (event) => {
-    event.preventDefault(); // Prevent default touch behavior
-    // Calculate the position of the tip of the gun
-    const tipX = player.x + Math.cos(player.angle) * (player.size / 2);
-    const tipY = player.y + Math.sin(player.angle) * (player.size / 2);
-    lasers = [{ x: tipX, y: tipY }];
-    assets.laserSound.play();
-});
+    document.addEventListener('touchstart', (event) => {
+        event.preventDefault();
+        const tipX = player.x + Math.cos(player.angle) * (player.size / 2);
+        const tipY = player.y + Math.sin(player.angle) * (player.size / 2);
+        lasers = [{ x: tipX, y: tipY }];
+        assets.laserSound.play();
+    });
 
-document.addEventListener('touchend', () => {
-    lasers = [];
-});
-
+    document.addEventListener('touchend', () => {
+        lasers = [];
+    });
 
     document.addEventListener('keydown', (event) => {
-    switch (event.key) {
-        case 'ArrowUp':
-            player.angle = -Math.PI / 2; // Point upwards
-            break;
-        case 'ArrowDown':
-            player.angle = Math.PI / 2; // Point downwards
-            break;
-        case 'ArrowLeft':
-            player.angle = Math.PI; // Point to the left
-            break;
-        case 'ArrowRight':
-            player.angle = 0; // Point to the right
-            break;
-        case ' ': // Spacebar to shoot
-            const tipX = player.x + Math.cos(player.angle) * (player.size / 2);
-            const tipY = player.y + Math.sin(player.angle) * (player.size / 2);
-            lasers = [{ x: tipX, y: tipY }];
-            assets.laserSound.play();
-            break;
-    }
-});
+        switch (event.key) {
+            case 'ArrowUp':
+                player.angle = -Math.PI / 2;
+                break;
+            case 'ArrowDown':
+                player.angle = Math.PI / 2;
+                break;
+            case 'ArrowLeft':
+                player.angle = Math.PI;
+                break;
+            case 'ArrowRight':
+                player.angle = 0;
+                break;
+            case ' ':
+                const tipX = player.x + Math.cos(player.angle) * (player.size / 2);
+                const tipY = player.y + Math.sin(player.angle) * (player.size / 2);
+                lasers = [{ x: tipX, y: tipY }];
+                assets.laserSound.play();
+                break;
+        }
+    });
 
-document.addEventListener('keyup', (event) => {
-    if (event.key === ' ') { // Spacebar released
-        lasers = [];
-    }
-});
-
-
-
-    // script.js
-
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-
-// Load the game over sound
-const gameOverSound = new Audio('game-over.mp3.mp3');
-
-// Example game state
-let gameOver = false;
-
-// Example function to check for game over condition
-function checkGameOver() {
-  // Replace this with your actual game over logic
-  if (/* your game over condition */) {
-    gameOver = true;
-    playGameOverSound();
-  }
-}
-
-// Function to play the game over sound
-function playGameOverSound() {
-  gameOverSound.play();
-}
-
-// Example game loop
-function gameLoop() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Check for game over
-  checkGameOver();
-
-  if (!gameOver) {
-    // Continue game logic
-    // ...
-  }
-
-  requestAnimationFrame(gameLoop);
-}
-
-// Start the game loop
-gameLoop();
-
-gameOverSound.addEventListener('error', () => {
-  console.error('Error loading the game over sound.');
-});
-
+    document.addEventListener('keyup', (event) => {
+        if (event.key === ' ') {
+            lasers = [];
+        }
+    });
 
     setInterval(createDrone, 2000);
-    setInterval(createSnowflake, 500); // Create snowflakes every 500ms
+    setInterval(createSnowflake, 500);
     setInterval(() => {
         if (score > 50) createBlackDrone();
         if (score > 100) createBomb();
