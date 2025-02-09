@@ -261,8 +261,7 @@ document.addEventListener('touchend', () => {
 });
 
 
-    // Add keyboard event listeners
-document.addEventListener('keydown', (event) => {
+    document.addEventListener('keydown', (event) => {
     switch (event.key) {
         case 'ArrowUp':
             player.angle = -Math.PI / 2; // Point upwards
@@ -290,6 +289,7 @@ document.addEventListener('keyup', (event) => {
         lasers = [];
     }
 });
+
 
 
     setInterval(createDrone, 2000);
