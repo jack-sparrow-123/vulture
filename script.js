@@ -89,7 +89,7 @@ window.onload = function () {
         }
     });
 
-   let isPaused = false; // Ensure this variable is declared
+   
 
 document.getElementById('pauseButton').addEventListener('click', () => {
     isPaused = !isPaused;
