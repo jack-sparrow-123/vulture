@@ -435,17 +435,6 @@ window.onload = function () {
         location.reload();
     });
 
-    document.getElementById('soundButton').addEventListener('click', () => {
-        isAudioEnabled = !isAudioEnabled;
-        document.getElementById('soundButton').textContent = isAudioEnabled ? 'Sound: On' : 'Sound: Off';
-        assets.backgroundMusic.muted = !isAudioEnabled;
-        assets.laserSound.muted = !isAudioEnabled;
-        assets.explosionSound.muted = !isAudioEnabled;
-        assets.gameOverSound.muted = !isAudioEnabled;
-    });
-
-    // Rest of your game code...
-};
     
 
     setInterval(createDrone, 2000);
