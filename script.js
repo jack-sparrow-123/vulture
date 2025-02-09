@@ -355,6 +355,99 @@ window.onload = function () {
     });
 
 
+
+    let isPlaying = false;
+let isPaused = false;
+let isAudioEnabled = true;
+
+
+
+
+    document.getElementById('playButton').addEventListener('click', () => {
+    if (!isPlaying) {
+        isPlaying = true;
+        isPaused = false;
+        gameLoop();
+        assets.backgroundMusic.play();
+    }
+});
+
+document.getElementById('pauseButton').addEventListener('click', () => {
+    isPaused = !isPaused;
+    if (isPaused) {
+        assets.backgroundMusic.pause();
+    } else {
+        assets.backgroundMusic.play();
+    }
+});
+
+document.getElementById('restartButton').addEventListener('click', () => {
+    location.reload(); // Reload the page to restart the game
+});
+
+document.getElementById('soundButton').addEventListener('click', () => {
+    isAudioEnabled = !isAudioEnabled;
+    document.getElementById('soundButton').textContent = isAudioEnabled ? 'Sound: On' : 'Sound: Off';
+    assets.backgroundMusic.muted = !isAudioEnabled;
+    assets.laserSound.muted = !isAudioEnabled;
+    assets.explosionSound.muted = !isAudioEnabled;
+    assets.gameOverSound.muted = !isAudioEnabled;
+});
+
+    function preloadAudio(audio) {
+    audio.preload = 'auto';
+    audio.load();
+}
+
+preloadAudio(assets.laserSound);
+preloadAudio(assets.explosionSound);
+preloadAudio(assets.backgroundMusic);
+preloadAudio(assets.gameOverSound);
+
+window.onload = function () {
+    alert("Press 'M' on laptops or double-tap the gun on phones to switch laser modes.");
+
+    const canvas = document.getElementById('gameCanvas');
+    const context = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // Add button event listeners
+    document.getElementById('playButton').addEventListener('click', () => {
+        if (!isPlaying) {
+            isPlaying = true;
+            isPaused = false;
+            gameLoop();
+            assets.backgroundMusic.play();
+        }
+    });
+
+    document.getElementById('pauseButton').addEventListener('click', () => {
+        isPaused = !isPaused;
+        if (isPaused) {
+            assets.backgroundMusic.pause();
+        } else {
+            assets.backgroundMusic.play();
+        }
+    });
+
+    document.getElementById('restartButton').addEventListener('click', () => {
+        location.reload();
+    });
+
+    document.getElementById('soundButton').addEventListener('click', () => {
+        isAudioEnabled = !isAudioEnabled;
+        document.getElementById('soundButton').textContent = isAudioEnabled ? 'Sound: On' : 'Sound: Off';
+        assets.backgroundMusic.muted = !isAudioEnabled;
+        assets.laserSound.muted = !isAudioEnabled;
+        assets.explosionSound.muted = !isAudioEnabled;
+        assets.gameOverSound.muted = !isAudioEnabled;
+    });
+
+    // Rest of your game code...
+};
+    
+
     setInterval(createDrone, 2000);
     setInterval(createSnowflake, 500);
     setInterval(() => {
