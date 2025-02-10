@@ -22,7 +22,8 @@ window.onload = function () {
         snowflake: new Image(),
         laserSound: new Audio('attack-laser-128280.mp3'),
         explosionSound: new Audio('small-explosion-129477.mp3'),
-        backgroundMusic: new Audio('lonely-winter-breeze-36867.mp3')
+        backgroundMusic: new Audio('lonely-winter-breeze-36867.mp3'),
+        gameOverSound: new Audio('game-over.mp3') // Add a game over tune
     };
     assets.player.src = 'gun2.png';
     assets.drone.src = 'drone2.png';
@@ -31,6 +32,10 @@ window.onload = function () {
     assets.explosion.src = 'explosion.png';
     assets.snowflake.src = 'snowflake.png';
     assets.backgroundMusic.loop = true;
+
+    // Preload the laser sound to avoid lag
+    assets.laserSound.load();
+    assets.gameOverSound.load();
 
     let player = { x: canvas.width / 2, y: canvas.height - 100, size: 80, angle: 0 };
     let drones = [], blackDrones = [], bombs = [], lasers = [], explosions = [], snowflakes = [], score = 0;
@@ -113,7 +118,7 @@ window.onload = function () {
 
     function gameLoop() {
         if (gameOver) {
-            context.fillStyle = 'white';
+            context.fillStyle = 'red'; // Change game over text color to red
             context.font = '40px Arial';
             context.fillText('Game Over!', canvas.width / 2 - 100, canvas.height / 2);
             return;
@@ -187,6 +192,7 @@ window.onload = function () {
                     blackDrones.splice(i, 1);
                     gameOver = true;
                     assets.explosionSound.play();
+                    assets.gameOverSound.play(); // Play game over tune
                 }
             });
 
@@ -201,6 +207,7 @@ window.onload = function () {
                     bombs.splice(i, 1);
                     gameOver = true;
                     assets.explosionSound.play();
+                    assets.gameOverSound.play(); // Play game over tune
                 }
             });
         }
