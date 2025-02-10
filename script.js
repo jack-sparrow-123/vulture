@@ -33,7 +33,7 @@ window.onload = function () {
 
     let player = { x: canvas.width / 2, y: canvas.height - 100, size: 80, angle: 0 };
     let drones = [], blackDrones = [], bombs = [], lasers = [], explosions = [], score = 0;
-    let isAudioEnabled = false, gameOver = false;
+    let isAudioEnabled = false, gameOver = false, lives = 3;
 
     window.addEventListener('resize', () => {
         canvas.width = window.innerWidth;
@@ -47,16 +47,32 @@ window.onload = function () {
         }
     });
 
-    function createEntity(type, array, speedOffset) {
+    function createDrone() {
         if (!gameOver) {
-            array.push({ x: Math.random() * (canvas.width - 80), y: 0, speed: Math.random() * 2 + speedOffset + score / 100 });
+            drones.push({ x: Math.random() * (canvas.width - 80), y: 0, speed: Math.random() * 2 + 1 + score / 100 });
+        }
+    }
+
+    function createBlackDrone() {
+        if (!gameOver) {
+            blackDrones.push({ x: Math.random() * (canvas.width - 80), y: 0, speed: Math.random() * 2 + 2 + score / 100 });
+        }
+    }
+
+    function createBomb() {
+        if (!gameOver) {
+            bombs.push({ x: Math.random() * (canvas.width - 80), y: 0, speed: Math.random() * 2 + 2 + score / 100 });
         }
     }
 
     function checkCollision(laser, target) {
-        const dx = laser.x - (target.x + 40);
-        const dy = laser.y - (target.y + 40);
-        return Math.sqrt(dx * dx + dy * dy) < 40;
+        // Check if the laser endpoint is within the target's bounding box
+        return (
+            laser.x > target.x &&
+            laser.x < target.x + 80 &&
+            laser.y > target.y &&
+            laser.y < target.y + 80
+        );
     }
 
     function drawLaser(laser) {
@@ -83,47 +99,82 @@ window.onload = function () {
         context.fillRect(0, 0, canvas.width, canvas.height);
         drawRotatedImage(assets.player, player.x, player.y, player.angle, player.size);
 
-        drones.forEach(drone => { drone.y += drone.speed; context.drawImage(assets.drone, drone.x, drone.y, 80, 80); });
-        blackDrones.forEach(drone => { drone.y += drone.speed; context.drawImage(assets.blackDrone, drone.x, drone.y, 80, 80); });
-        bombs.forEach(bomb => { bomb.y += bomb.speed; context.drawImage(assets.bomb, bomb.x, bomb.y, 60, 60); });
+        // Update and draw drones
+        drones.forEach(drone => {
+            drone.y += drone.speed;
+            context.drawImage(assets.drone, drone.x, drone.y, 80, 80);
+        });
 
+        // Update and draw black drones
+        blackDrones.forEach(drone => {
+            drone.y += drone.speed;
+            context.drawImage(assets.blackDrone, drone.x, drone.y, 80, 80);
+        });
+
+        // Update and draw bombs
+        bombs.forEach(bomb => {
+            bomb.y += bomb.speed;
+            context.drawImage(assets.bomb, bomb.x, bomb.y, 60, 60);
+        });
+
+        // Draw lasers
         lasers.forEach(drawLaser);
 
+        // Check for collisions
         lasers.forEach(laser => {
-            drones = drones.filter(drone => !checkCollision(laser, drone) || (score += 10));
-            blackDrones = blackDrones.filter(drone => {
+            // Check collision with drones
+            drones = drones.filter((drone, index) => {
                 if (checkCollision(laser, drone)) {
-                    gameOver = true;
-                    assets.gameOverSound.play();
-                    return false;
+                    score += 10;
+                    explosions.push({ x: drone.x, y: drone.y, frame: 0 }); // Trigger explosion
+                    return false; // Remove the drone
                 }
                 return true;
             });
 
-            bombs = bombs.filter(bomb => {
+            // Check collision with black drones
+            blackDrones.forEach((drone, index) => {
+                if (checkCollision(laser, drone)) {
+                    lives--;
+                    if (lives <= 0) {
+                        gameOver = true;
+                        assets.gameOverSound.play();
+                    }
+                    explosions.push({ x: drone.x, y: drone.y, frame: 0 }); // Trigger explosion
+                    blackDrones.splice(index, 1); // Remove the black drone
+                }
+            });
+
+            // Check collision with bombs
+            bombs.forEach((bomb, index) => {
                 if (checkCollision(laser, bomb)) {
                     score -= 20;
+                    explosions.push({ x: bomb.x, y: bomb.y, frame: 0 }); // Trigger explosion
+                    bombs.splice(index, 1); // Remove the bomb
                     assets.explosionSound.play();
-                    explosions.push({ x: bomb.x, y: bomb.y, frame: 0 });
-                    return false;
                 }
-                return true;
             });
         });
 
+        // Draw explosions
         explosions.forEach((explosion, index) => {
             context.drawImage(assets.explosion, explosion.x, explosion.y, 80, 80);
             explosion.frame++;
-            if (explosion.frame > 10) explosions.splice(index, 1);
+            if (explosion.frame > 10) {
+                explosions.splice(index, 1); // Remove the explosion after 10 frames
+            }
         });
 
+        // Draw score and lives
         context.fillStyle = 'white';
         context.font = '20px Arial';
         context.fillText('Score: ' + score, 20, 30);
+        context.fillText('Lives: ' + lives, 20, 60);
 
+        // Spawn new enemies based on score
         if (score >= 50) {
-            if (drones.length < 10) createEntity('drone', drones, 1);
-            if (blackDrones.length < 5) createEntity('blackDrone', blackDrones, 2);
+            if (drones.length < 10) createDrone();
+            if (blackDrones.length < 5) createBlackDrone();
         }
 
         requestAnimationFrame(gameLoop);
@@ -144,9 +195,13 @@ window.onload = function () {
         assets.laserSound.play();
     });
 
-    setInterval(() => createEntity('drone', drones, 1), 2000);
-    setInterval(() => { if (score > 50) createEntity('blackDrone', blackDrones, 2); }, 3000);
-    setInterval(() => { if (score > 100) createEntity('bomb', bombs, 2); }, 5000);
+    document.addEventListener('mouseup', () => {
+        lasers = [];
+    });
+
+    setInterval(createDrone, 2000);
+    setInterval(() => { if (score > 50) createBlackDrone(); }, 3000);
+    setInterval(() => { if (score > 100) createBomb(); }, 5000);
 
     gameLoop();
 };
