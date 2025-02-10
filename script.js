@@ -21,12 +21,14 @@ window.onload = function () {
     assets.snowflake.src = 'snowflake.png';
     assets.laserSound.volume = 1;
     assets.laserSound.preload = 'auto';
+    assets.laserSound.load();
+    assets.explosionSound.preload = 'auto';
+    assets.explosionSound.load();
 
-    let player = { x: canvas.width / 2, y: canvas.height - 100, size: 80, angle: 0 };
+    let player = { x: canvas.width / 2, y: canvas.height - 100, size: 80 };
     let drones = [], lasers = [], explosions = [], snowflakes = [], bombs = [], score = 0;
     let gameOver = false;
     let gunType = 'beam';
-    let zoomLevel = 1;
 
     alert('Press M (Laptop) or Double Tap (Mobile) to switch between Beam and Drop gun.');
 
@@ -50,36 +52,31 @@ window.onload = function () {
     }
     createSnowflakes();
 
-    // Handle shooting for keyboard, mouse, and touch
     function shootLaser() {
         if (!gameOver) {
             lasers.push({ x: player.x, y: player.y });
-            assets.laserSound.currentTime = 0;
-            assets.laserSound.play();
+            if (assets.laserSound.paused) {
+                assets.laserSound.currentTime = 0;
+                assets.laserSound.play();
+            }
         }
     }
 
-    // Keyboard input
     document.addEventListener('keydown', (e) => {
-        if (e.code === 'Space') { // Spacebar to shoot
-            shootLaser();
-        }
+        if (e.code === 'Space') shootLaser();
+        if (e.code === 'ArrowLeft' && player.x > 0) player.x -= 20;
+        if (e.code === 'ArrowRight' && player.x < canvas.width) player.x += 20;
+        if (e.code === 'KeyM') gunType = gunType === 'beam' ? 'drop' : 'beam';
     });
 
-    // Mouse input
-    canvas.addEventListener('mousedown', () => {
-        shootLaser();
-    });
-
-    // Touch input
+    canvas.addEventListener('mousedown', shootLaser);
     canvas.addEventListener('touchstart', (e) => {
-        e.preventDefault(); // Prevent default touch behavior
+        e.preventDefault();
         shootLaser();
     });
 
     function gameLoop() {
         if (gameOver) return;
-
         context.fillStyle = '#001F3F';
         context.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -116,8 +113,10 @@ window.onload = function () {
                     drones.splice(i, 1);
                     lasers.splice(j, 1);
                     score += drone.black ? -20 : 10;
-                    assets.explosionSound.currentTime = 0;
-                    assets.explosionSound.play();
+                    if (assets.explosionSound.paused) {
+                        assets.explosionSound.currentTime = 0;
+                        assets.explosionSound.play();
+                    }
                 }
             });
         });
@@ -138,11 +137,6 @@ window.onload = function () {
         if (gameOver) {
             context.drawImage(assets.explosion, player.x - 50, player.y - 50, 100, 100);
             return;
-        }
-
-        if (score >= 50) {
-            setInterval(createDrone, 1500);
-            setInterval(createBomb, 4000);
         }
 
         requestAnimationFrame(gameLoop);
