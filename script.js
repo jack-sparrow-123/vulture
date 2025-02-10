@@ -73,6 +73,7 @@ window.onload = function () {
             context.drawImage(assets.drone, drone.x, drone.y, 80, 80);
             if (drone.y > canvas.height) drones.splice(i, 1);
             if (Math.abs(drone.x - player.x) < 40 && Math.abs(drone.y - player.y) < 40) {
+                explosions.push({ x: player.x, y: player.y, timer: 30 });
                 gameOver = true;
                 assets.gameOverSound.play();
                 assets.backgroundMusic.pause();
@@ -81,12 +82,13 @@ window.onload = function () {
         lasers.forEach((laser, i) => {
             laser.x += Math.cos(laser.angle) * 7;
             laser.y += Math.sin(laser.angle) * 7;
-            context.fillRect(laser.x, laser.y, 5, 5);
+            context.fillStyle = 'red';
+            context.fillRect(laser.x, laser.y, 10, 10); // Increased size for visibility
             if (laser.y < 0 || laser.y > canvas.height || laser.x < 0 || laser.x > canvas.width) lasers.splice(i, 1);
         });
         drones.forEach((drone, i) => {
             lasers.forEach((laser, j) => {
-                if (laser.x < drone.x + 80 && laser.x + 5 > drone.x && laser.y < drone.y + 80 && laser.y + 5 > drone.y) {
+                if (laser.x < drone.x + 80 && laser.x + 10 > drone.x && laser.y < drone.y + 80 && laser.y + 10 > drone.y) {
                     explosions.push({ x: drone.x, y: drone.y, timer: 30 });
                     drones.splice(i, 1);
                     lasers.splice(j, 1);
