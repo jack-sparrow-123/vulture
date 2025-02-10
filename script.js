@@ -92,6 +92,7 @@ window.onload = function () {
             context.fillStyle = 'red';
             context.font = '40px Arial';
             context.fillText('Game Over!', canvas.width / 2 - 100, canvas.height / 2);
+            assets.gameOverSound.play();
             return;
         }
 
@@ -109,10 +110,50 @@ window.onload = function () {
 
         drawRotatedImage(assets.player, player.x, player.y, player.angle, player.size);
         
-        drones.forEach(drone => { drone.y += drone.speed; context.drawImage(assets.drone, drone.x, drone.y, 80, 80); });
-        blackDrones.forEach(drone => { drone.y += drone.speed; context.drawImage(assets.blackDrone, drone.x, drone.y, 80, 80); });
-        bombs.forEach(bomb => { bomb.y += bomb.speed; context.drawImage(assets.bomb, bomb.x, bomb.y, 60, 60); });
+        drones.forEach((drone, index) => {
+            drone.y += drone.speed;
+            context.drawImage(assets.drone, drone.x, drone.y, 80, 80);
+            lasers.forEach(laser => {
+                if (checkCollision(laser, drone)) {
+                    drones.splice(index, 1);
+                    explosions.push({ x: drone.x, y: drone.y, frame: 0 });
+                    assets.explosionSound.play();
+                    score += 10;
+                }
+            });
+        });
+
+        blackDrones.forEach((drone, index) => {
+            drone.y += drone.speed;
+            context.drawImage(assets.blackDrone, drone.x, drone.y, 80, 80);
+            lasers.forEach(laser => {
+                if (checkCollision(laser, drone)) {
+                    gameOver = true;
+                    explosions.push({ x: drone.x, y: drone.y, frame: 0 });
+                    assets.gameOverSound.play();
+                }
+            });
+        });
+
+        bombs.forEach((bomb, index) => {
+            bomb.y += bomb.speed;
+            context.drawImage(assets.bomb, bomb.x, bomb.y, 60, 60);
+            lasers.forEach(laser => {
+                if (checkCollision(laser, bomb)) {
+                    gameOver = true;
+                    explosions.push({ x: bomb.x, y: bomb.y, frame: 0 });
+                    assets.explosionSound.play();
+                }
+            });
+        });
+
         lasers.forEach(drawLaser);
+
+        explosions.forEach((explosion, index) => {
+            context.drawImage(assets.explosion, explosion.x, explosion.y, 80, 80);
+            explosion.frame++;
+            if (explosion.frame > 10) explosions.splice(index, 1);
+        });
 
         context.fillStyle = 'white';
         context.font = '20px Arial';
@@ -127,7 +168,6 @@ window.onload = function () {
     });
 
     document.addEventListener('touchstart', (event) => {
-        const touch = event.touches[0];
         lasers.push({ x: player.x, y: player.y, angle: player.angle });
         assets.laserSound.currentTime = 0;
         assets.laserSound.play();
