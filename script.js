@@ -2,7 +2,7 @@ window.onload = function () {
     const canvas = document.getElementById('gameCanvas');
     const context = canvas.getContext('2d');
 
-    // Load assets
+    // Load assets with sound preloading
     const assets = {
         player: new Image(),
         drone: new Image(),
@@ -14,15 +14,24 @@ window.onload = function () {
         explosionSound: new Audio('small-explosion-129477.mp3'),
         gameOverSound: new Audio('game-over.mp3')
     };
+
+    // Set up paths for MP3 files (check their location relative to your project)
     assets.player.src = 'gun2.png';
     assets.drone.src = 'drone2.png';
     assets.blackDrone.src = 'blackdrone.png';
     assets.bomb.src = 'bomb.png';
     assets.explosion.src = 'explosion.png';
     assets.snowflake.src = 'snowflake.png';
+
+    // Set the volume for sound effects
     assets.laserSound.volume = 0.5;
     assets.explosionSound.volume = 0.5;
     assets.gameOverSound.volume = 0.7;
+
+    // Preload sounds to ensure they are ready when needed
+    assets.laserSound.load();
+    assets.explosionSound.load();
+    assets.gameOverSound.load();
 
     let player = { x: canvas.width / 2, y: canvas.height - 100, size: 80, angle: 0 };
     let drones = [], lasers = [], explosions = [], snowflakes = [], bombs = [], score = 0;
@@ -81,6 +90,7 @@ window.onload = function () {
     canvas.addEventListener('touchstart', (e) => { e.preventDefault(); shoot(); });
     
     function checkCollisions() {
+        // Check collision between drones and lasers
         drones.forEach((drone, i) => {
             lasers.forEach((laser, j) => {
                 if (Math.hypot(laser.x - (drone.x + 40), laser.y - (drone.y + 40)) < 40) {
@@ -95,9 +105,11 @@ window.onload = function () {
             });
         });
 
+        // Check collision between bombs and player
         bombs.forEach((bomb, i) => {
             if (Math.hypot(bomb.x - player.x, bomb.y - player.y) < 40) {
                 explosions.push({ x: player.x, y: player.y, timer: 30 });
+                bombs.splice(i, 1); // Remove bomb on collision
                 endGame();
             }
         });
@@ -105,6 +117,7 @@ window.onload = function () {
 
     function endGame() {
         gameOver = true;
+        assets.gameOverSound.currentTime = 0; // Reset sound time before playing
         assets.gameOverSound.play();
     }
 
@@ -144,6 +157,15 @@ window.onload = function () {
             context.beginPath();
             context.arc(laser.x, laser.y, 3, 0, Math.PI * 2);
             context.fill();
+        });
+
+        explosions.forEach((explosion, i) => {
+            if (explosion.timer > 0) {
+                context.drawImage(assets.explosion, explosion.x - 40, explosion.y - 40, 80, 80);
+                explosion.timer--;
+            } else {
+                explosions.splice(i, 1);
+            }
         });
 
         checkCollisions();
