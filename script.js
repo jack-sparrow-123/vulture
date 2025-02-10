@@ -31,7 +31,7 @@ window.onload = function () {
     document.addEventListener('click', () => assets.backgroundMusic.play(), { once: true });
 
     let player = { x: canvas.width / 2, y: canvas.height - 100, size: 80, angle: 0 };
-    let drones = [], lasers = [], explosions = [], bombs = [], score = 0;
+    let drones = [], lasers = [], explosions = [], snowflakes = [], bombs = [], score = 0;
     let gameOver = false;
     let difficulty = 2000;
 
@@ -48,9 +48,16 @@ window.onload = function () {
         }
     }
 
+    function createSnowflakes() {
+        for (let i = 0; i < 50; i++) {
+            snowflakes.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, speed: Math.random() * 2 + 1 });
+        }
+    }
+    createSnowflakes();
+
     function shoot() {
         if (!gameOver) {
-            lasers.push({ x: player.x, y: player.y, angle: player.angle, width: 10, height: canvas.height });
+            lasers.push({ x: player.x + Math.cos(player.angle) * player.size / 2, y: player.y + Math.sin(player.angle) * player.size / 2, angle: player.angle, speed: 10 });
             assets.laserSound.currentTime = 0;
             assets.laserSound.play();
         }
@@ -60,20 +67,18 @@ window.onload = function () {
         if (e.code === 'Space') shoot();
         if (e.code === 'ArrowLeft') player.angle -= Math.PI / 18;
         if (e.code === 'ArrowRight') player.angle += Math.PI / 18;
-        if (e.code === 'ArrowUp') player.y = Math.max(0, player.y - 10);
-        if (e.code === 'ArrowDown') player.y = Math.min(canvas.height, player.y + 10);
     });
 
     canvas.addEventListener('mousemove', (e) => {
-        const rect = canvas.getBoundingClientRect();
-        player.angle = Math.atan2(e.clientY - rect.top - player.y, e.clientX - rect.left - player.x);
+        if (!gameOver) {
+            const rect = canvas.getBoundingClientRect();
+            player.angle = Math.atan2(e.clientY - rect.top - player.y, e.clientX - rect.left - player.x);
+        }
     });
 
-    canvas.addEventListener('mousedown', () => shoot());
-
     function checkCollisions() {
-        drones.forEach((drone, j) => {
-            lasers.forEach((laser, i) => {
+        lasers.forEach((laser, i) => {
+            drones.forEach((drone, j) => {
                 if (Math.hypot(laser.x - (drone.x + 40), laser.y - (drone.y + 40)) < 40) {
                     explosions.push({ x: drone.x, y: drone.y, timer: 30 });
                     drones.splice(j, 1);
@@ -113,6 +118,11 @@ window.onload = function () {
         context.fillStyle = '#001F3F';
         context.fillRect(0, 0, canvas.width, canvas.height);
 
+        snowflakes.forEach(flake => {
+            flake.y = (flake.y + flake.speed) % canvas.height;
+            context.drawImage(assets.snowflake, flake.x, flake.y, 10, 10);
+        });
+
         context.save();
         context.translate(player.x, player.y);
         context.rotate(player.angle);
@@ -120,10 +130,10 @@ window.onload = function () {
         context.restore();
 
         lasers.forEach(laser => {
-            laser.x += Math.cos(laser.angle) * 10;
-            laser.y += Math.sin(laser.angle) * 10;
+            laser.x += Math.cos(laser.angle) * laser.speed;
+            laser.y += Math.sin(laser.angle) * laser.speed;
             context.fillStyle = 'red';
-            context.fillRect(laser.x, laser.y, laser.width, laser.height);
+            context.fillRect(laser.x, laser.y, 5, 20);
         });
 
         checkCollisions();
