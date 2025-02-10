@@ -71,10 +71,10 @@ window.onload = function () {
 
     function checkCollision(laser, target) {
         return (
-            laser.x > target.x &&
-            laser.x < target.x + 80 &&
-            laser.y > target.y &&
-            laser.y < target.y + 80
+            laser.x >= target.x &&
+            laser.x <= target.x + 80 &&
+            laser.y >= target.y &&
+            laser.y <= target.y + 80
         );
     }
 
@@ -83,10 +83,7 @@ window.onload = function () {
         context.lineWidth = 5;
         context.beginPath();
         context.moveTo(laser.x, laser.y);
-        context.lineTo(
-            laser.x + Math.cos(laser.angle) * canvas.height,
-            laser.y + Math.sin(laser.angle) * canvas.height
-        );
+        context.lineTo(laser.x, 0);
         context.stroke();
     }
 
@@ -101,10 +98,9 @@ window.onload = function () {
         context.fillStyle = '#001F3F';
         context.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw snowflakes
-        context.fillStyle = 'white';
         snowflakes.forEach((snowflake, index) => {
             snowflake.y += snowflake.speed;
+            context.fillStyle = 'white';
             context.beginPath();
             context.arc(snowflake.x, snowflake.y, 2, 0, Math.PI * 2);
             context.fill();
@@ -112,117 +108,29 @@ window.onload = function () {
         });
 
         drawRotatedImage(assets.player, player.x, player.y, player.angle, player.size);
-
-        // Update and draw drones
-        drones.forEach(drone => {
-            drone.y += drone.speed;
-            context.drawImage(assets.drone, drone.x, drone.y, 80, 80);
-        });
-
-        // Update and draw black drones
-        blackDrones.forEach(drone => {
-            drone.y += drone.speed;
-            context.drawImage(assets.blackDrone, drone.x, drone.y, 80, 80);
-        });
-
-        // Update and draw bombs
-        bombs.forEach(bomb => {
-            bomb.y += bomb.speed;
-            context.drawImage(assets.bomb, bomb.x, bomb.y, 60, 60);
-        });
-
-        // Draw lasers
+        
+        drones.forEach(drone => { drone.y += drone.speed; context.drawImage(assets.drone, drone.x, drone.y, 80, 80); });
+        blackDrones.forEach(drone => { drone.y += drone.speed; context.drawImage(assets.blackDrone, drone.x, drone.y, 80, 80); });
+        bombs.forEach(bomb => { bomb.y += bomb.speed; context.drawImage(assets.bomb, bomb.x, bomb.y, 60, 60); });
         lasers.forEach(drawLaser);
 
-        // Check for collisions
-        lasers.forEach(laser => {
-            // Check collision with drones
-            drones = drones.filter((drone, index) => {
-                if (checkCollision(laser, drone)) {
-                    score += 10;
-                    explosions.push({ x: drone.x, y: drone.y, frame: 0 });
-                    return false;
-                }
-                return true;
-            });
-
-            // Check collision with black drones
-            blackDrones.forEach((drone, index) => {
-                if (checkCollision(laser, drone)) {
-                    gameOver = true;
-                    explosions.push({ x: drone.x, y: drone.y, frame: 0 });
-                    blackDrones.splice(index, 1);
-                    assets.gameOverSound.play();
-                }
-            });
-
-            // Check collision with bombs
-            bombs.forEach((bomb, index) => {
-                if (checkCollision(laser, bomb)) {
-                    gameOver = true;
-                    explosions.push({ x: bomb.x, y: bomb.y, frame: 0 });
-                    bombs.splice(index, 1);
-                    assets.explosionSound.play();
-                }
-            });
-        });
-
-        // Draw explosions
-        explosions.forEach((explosion, index) => {
-            context.drawImage(assets.explosion, explosion.x, explosion.y, 80, 80);
-            explosion.frame++;
-            if (explosion.frame > 10) {
-                explosions.splice(index, 1);
-            }
-        });
-
-        // Draw score
         context.fillStyle = 'white';
         context.font = '20px Arial';
         context.fillText('Score: ' + score, 20, 30);
 
-        // Spawn new enemies based on score
-        if (score >= 50) {
-            if (drones.length < 10) createDrone();
-            if (blackDrones.length < 5) createBlackDrone();
-        }
-
         requestAnimationFrame(gameLoop);
     }
 
-    document.addEventListener('mousemove', (event) => {
-        const rect = canvas.getBoundingClientRect();
-        const mouseX = event.clientX - rect.left;
-        const mouseY = event.clientY - rect.top;
-        player.angle = Math.atan2(mouseY - player.y, mouseX - player.x);
+    document.addEventListener('touchmove', (event) => {
+        const touch = event.touches[0];
+        player.angle = Math.atan2(touch.clientY - player.y, touch.clientX - player.x);
     });
 
-    document.addEventListener('mousedown', () => {
-        const tipX = player.x + Math.cos(player.angle) * (player.size / 2);
-        const tipY = player.y + Math.sin(player.angle) * (player.size / 2);
-        lasers.push({ x: tipX, y: tipY, angle: player.angle });
+    document.addEventListener('touchstart', (event) => {
+        const touch = event.touches[0];
+        lasers.push({ x: player.x, y: player.y, angle: player.angle });
         assets.laserSound.currentTime = 0;
         assets.laserSound.play();
-    });
-
-    document.addEventListener('mouseup', () => {
-        lasers = [];
-    });
-
-    // Keyboard controls
-    document.addEventListener('keydown', (event) => {
-        const speed = 10;
-        if (event.key === 'ArrowLeft') {
-            player.x -= speed;
-        } else if (event.key === 'ArrowRight') {
-            player.x += speed;
-        } else if (event.key === ' ') { // Space bar to shoot
-            const tipX = player.x + Math.cos(player.angle) * (player.size / 2);
-            const tipY = player.y + Math.sin(player.angle) * (player.size / 2);
-            lasers.push({ x: tipX, y: tipY, angle: player.angle });
-            assets.laserSound.currentTime = 0;
-            assets.laserSound.play();
-        }
     });
 
     setInterval(createDrone, 2000);
