@@ -12,7 +12,7 @@ window.onload = function () {
         laserSound: new Audio('attack-laser-128280.mp3'),
         explosionSound: new Audio('small-explosion-129477.mp3'),
         gameOverSound: new Audio('game-over.mp3'),
-        backgroundMusic: new Audio('background-music.mp3')
+        backgroundMusic: new Audio('lonely-winter-breeze-36867.mp3')
     };
 
     assets.player.src = 'gun2.png';
