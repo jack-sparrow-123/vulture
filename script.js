@@ -1,170 +1,98 @@
-const assets = {};
-let gameOver = false;
-let score = 0;
-let laserMode = 'beam'; // 'beam' or 'drop'
-const drones = [], blackDrones = [], bombs = [], snowflakes = [], explosions = [];
-const player = { x: 300, y: 500, size: 50, angle: 0 };
-const canvas = document.getElementById('gameCanvas');
-const context = canvas.getContext('2d');
+window.onload = function () {
+    const canvas = document.getElementById('gameCanvas');
+    const context = canvas.getContext('2d');
 
-// Helper functions to load assets
-function loadImage(src) {
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.src = src;
-        img.onload = () => resolve(img);
-        img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
-    });
-}
+    // Load assets
+    const assets = {
+        player: new Image(),
+        drone: new Image(),
+        explosion: new Image(),
+        snowflake: new Image(),
+        laserSound: new Audio('laser.mp3'),
+        explosionSound: new Audio('explosion.mp3'),
+        droneSound: new Audio('drone.mp3'),
+        backgroundMusic: new Audio('background.mp3')
+    };
+    assets.player.src = 'gun2.png';
+    assets.drone.src = 'drone2.png';
+    assets.explosion.src = 'explosion.png';
+    assets.snowflake.src = 'snowflake.png';
+    assets.backgroundMusic.loop = true;
+    document.addEventListener('click', () => assets.backgroundMusic.play(), { once: true });
 
-function loadAudio(src) {
-    return new Promise((resolve, reject) => {
-        const audio = new Audio(src);
-        audio.oncanplaythrough = () => resolve(audio);
-        audio.onerror = () => reject(new Error(`Failed to load audio: ${src}`));
-    });
-}
+    // Game variables
+    let player = { x: canvas.width / 2, y: canvas.height - 100, size: 80, angle: 0 };
+    let drones = [], lasers = [], explosions = [], snowflakes = [], score = 0;
 
-// Draw rotated image
-function drawRotatedImage(image, x, y, angle, size) {
-    context.save();
-    context.translate(x + size / 2, y + size / 2);
-    context.rotate(angle);
-    context.drawImage(image, -size / 2, -size / 2, size, size);
-    context.restore();
-}
-
-// Event listeners
-document.addEventListener('click', () => {
-    fireLaser();
-});
-
-document.addEventListener('keydown', (event) => {
-    if (event.key === 'm' || event.key === 'M') {
-        toggleLaserMode();
+    function createDrone() {
+        drones.push({ x: Math.random() * (canvas.width - 80), y: 0, speed: Math.random() * 2 + 1 });
+        assets.droneSound.play();
     }
-    moveGun(event);
-});
 
-canvas.addEventListener('dblclick', () => {
-    toggleLaserMode();
-});
+    function createSnowflakes() {
+        for (let i = 0; i < 10; i++) {
+            snowflakes.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, speed: Math.random() * 2 + 1 });
+        }
+    }
+    createSnowflakes();
 
-function toggleLaserMode() {
-    laserMode = laserMode === 'beam' ? 'drop' : 'beam';
-    alert('Laser mode switched to: ' + laserMode);
-}
+    function drawRotatedImage(img, x, y, angle, size) {
+        context.save();
+        context.translate(x, y);
+        context.rotate(angle);
+        context.drawImage(img, -size / 2, -size / 2, size, size);
+        context.restore();
+    }
 
-function moveGun(event) {
-    if (event.key === 'ArrowLeft') player.x -= 20;
-    if (event.key === 'ArrowRight') player.x += 20;
-    if (event.key === 'ArrowUp') player.y -= 20;
-    if (event.key === 'ArrowDown') player.y += 20;
-    player.x = Math.max(0, Math.min(canvas.width - player.size, player.x));
-    player.y = Math.max(0, Math.min(canvas.height - player.size, player.y));
-}
+    function gameLoop() {
+        context.fillStyle = '#001F3F';
+        context.fillRect(0, 0, canvas.width, canvas.height);
 
-function fireLaser() {
-    explosions.push({ x: player.x + 20, y: player.y, size: 10, mode: laserMode });
-    assets.laserSound.play();
-}
-
-document.addEventListener('keydown', (event) => {
-    if (event.key === ' ') fireLaser();
-});
-
-function createDrone() {
-    drones.push({ x: Math.random() * canvas.width, y: -50, size: 50, speed: 2 + Math.random() * 3 });
-}
-
-function createBlackDrone() {
-    blackDrones.push({ x: Math.random() * canvas.width, y: -50, size: 60, speed: 3 + Math.random() * 2 });
-}
-
-function createBomb() {
-    bombs.push({ x: Math.random() * canvas.width, y: -50, size: 40, speed: 4 + Math.random() * 2 });
-}
-
-function createSnowflake() {
-    snowflakes.push({ x: Math.random() * canvas.width, y: -10, size: 20 + Math.random() * 10, speed: 1 + Math.random() * 2 });
-}
-
-function updateObjects(objects, asset, callback) {
-    objects.forEach((obj, index) => {
-        obj.y += obj.speed;
-        context.drawImage(asset, obj.x, obj.y, obj.size, obj.size);
-        if (obj.y > canvas.height) objects.splice(index, 1);
-        if (callback) callback(obj, index);
-    });
-}
-
-function checkCollisions() {
-    explosions.forEach((laser, laserIndex) => {
-        drones.forEach((drone, droneIndex) => {
-            if (Math.abs(laser.x - drone.x) < 40 && Math.abs(laser.y - drone.y) < 40) {
-                drones.splice(droneIndex, 1);
-                explosions.splice(laserIndex, 1);
-                assets.explosionSound.play();
-                score += 10;
-            }
+        snowflakes.forEach(flake => {
+            flake.y = (flake.y + flake.speed) % canvas.height;
+            context.drawImage(assets.snowflake, flake.x, flake.y, 10, 10);
         });
-    });
-    blackDrones.forEach((drone) => {
-        if (Math.abs(player.x - drone.x) < 50 && Math.abs(player.y - drone.y) < 50) gameOverSequence();
-    });
-    bombs.forEach((bomb) => {
-        if (Math.abs(player.x - bomb.x) < 50 && Math.abs(player.y - bomb.y) < 50) gameOverSequence();
-    });
-}
-
-function gameOverSequence() {
-    gameOver = true;
-    assets.gameOverSound.play();
-}
-
-function gameLoop() {
-    if (gameOver) {
+        drawRotatedImage(assets.player, player.x, player.y, player.angle, player.size);
+        drones.forEach((drone, i) => {
+            drone.y += drone.speed;
+            context.drawImage(assets.drone, drone.x, drone.y, 80, 80);
+            if (drone.y > canvas.height) drones.splice(i, 1);
+        });
+        lasers.forEach((laser, i) => {
+            laser.x += Math.cos(laser.angle) * 7;
+            laser.y += Math.sin(laser.angle) * 7;
+            context.fillRect(laser.x, laser.y, 5, 5);
+            if (laser.y < 0 || laser.y > canvas.height || laser.x < 0 || laser.x > canvas.width) lasers.splice(i, 1);
+        });
+        drones.forEach((drone, i) => {
+            lasers.forEach((laser, j) => {
+                if (laser.x < drone.x + 80 && laser.x + 5 > drone.x && laser.y < drone.y + 80 && laser.y + 5 > drone.y) {
+                    explosions.push({ x: drone.x, y: drone.y, timer: 30 });
+                    drones.splice(i, 1);
+                    lasers.splice(j, 1);
+                    score += 10;
+                    assets.explosionSound.play();
+                }
+            });
+        });
+        explosions.forEach((exp, i) => {
+            context.drawImage(assets.explosion, exp.x, exp.y, 100, 100);
+            if (--exp.timer <= 0) explosions.splice(i, 1);
+        });
         context.fillStyle = 'white';
-        context.font = '40px Arial';
-        context.fillText('Game Over!', canvas.width / 2 - 100, canvas.height / 2);
-        context.fillText('Final Score: ' + score, canvas.width / 2 - 120, canvas.height / 2 + 50);
-        return;
+        context.font = '20px Arial';
+        context.fillText('Score: ' + score, 20, 30);
+        requestAnimationFrame(gameLoop);
     }
-    context.fillStyle = '#001F3F';
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    drawRotatedImage(assets.player, player.x, player.y, player.angle, player.size);
-    updateObjects(drones, assets.drone);
-    updateObjects(blackDrones, assets.blackDrone);
-    updateObjects(bombs, assets.bomb);
-    updateObjects(snowflakes, assets.snowflake);
-    checkCollisions();
-    requestAnimationFrame(gameLoop);
-}
 
-// Load assets and start the game
-Promise.all([
-    loadImage('gun2.png'),
-    loadImage('drone2.png'),
-    loadImage('blackdrone.png'),
-    loadImage('bomb.png'),
-    loadImage('explosion.png'),
-    loadImage('snowflake.png'),
-    loadAudio('attack-laser-128280.mp3'),
-    loadAudio('small-explosion-129477.mp3'),
-    loadAudio('lonely-winter-breeze-36867.mp3'),
-    loadAudio('game-over.mp3')
-]).then((loadedAssets) => {
-    assets.player = loadedAssets[0];
-    assets.drone = loadedAssets[1];
-    assets.blackDrone = loadedAssets[2];
-    assets.bomb = loadedAssets[3];
-    assets.explosion = loadedAssets[4];
-    assets.snowflake = loadedAssets[5];
-    assets.laserSound = loadedAssets[6];
-    assets.explosionSound = loadedAssets[7];
-    assets.backgroundMusic = loadedAssets[8];
-    assets.gameOverSound = loadedAssets[9];
-    assets.backgroundMusic.loop = true; // Loop background music
-    assets.backgroundMusic.play(); // Start background music
+    document.addEventListener('mousemove', (event) => {
+        player.angle = Math.atan2(event.clientY - player.y, event.clientX - player.x);
+    });
+    document.addEventListener('click', () => {
+        lasers.push({ x: player.x + Math.cos(player.angle) * 40, y: player.y + Math.sin(player.angle) * 40, angle: player.angle });
+        assets.laserSound.play();
+    });
+
+    setInterval(createDrone, 2000);
     gameLoop();
-}).catch(error => console.error('Error loading assets:', error));
+};
