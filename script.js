@@ -33,7 +33,7 @@ window.onload = function () {
     assets.snowflake.src = 'snowflake.png';
     assets.backgroundMusic.loop = true;
 
-    // Preload sounds to avoid lag
+    // Preload the laser sound to avoid lag
     assets.laserSound.load();
     assets.gameOverSound.load();
 
@@ -41,7 +41,6 @@ window.onload = function () {
     let drones = [], blackDrones = [], bombs = [], lasers = [], explosions = [], snowflakes = [], score = 0;
     let isAudioEnabled = false;
     let gameOver = false;
-    let laserActive = false; // Flag to control laser visibility and sound
 
     window.addEventListener('resize', () => {
         canvas.width = window.innerWidth;
@@ -58,18 +57,15 @@ window.onload = function () {
     });
 
     function createDrone() {
-        const speed = Math.random() * 2 + 1 + score / 100; // Increase speed based on score
-        drones.push({ x: Math.random() * (canvas.width - 80), y: 0, speed });
+        drones.push({ x: Math.random() * (canvas.width - 80), y: 0, speed: Math.random() * 2 + 1 + score / 100 });
     }
 
     function createBlackDrone() {
-        const speed = Math.random() * 2 + 2 + score / 100; // Increase speed based on score
-        blackDrones.push({ x: Math.random() * (canvas.width - 80), y: 0, speed });
+        blackDrones.push({ x: Math.random() * (canvas.width - 80), y: 0, speed: Math.random() * 2 + 2 + score / 100 });
     }
 
     function createBomb() {
-        const speed = Math.random() * 2 + 2 + score / 100; // Increase speed based on score
-        bombs.push({ x: Math.random() * (canvas.width - 80), y: 0, speed });
+        bombs.push({ x: Math.random() * (canvas.width - 80), y: 0, speed: Math.random() * 2 + 2 + score / 100 });
     }
 
     function createSnowflake() {
@@ -133,35 +129,37 @@ window.onload = function () {
 
         drawRotatedImage(assets.player, player.x, player.y, player.angle, player.size);
 
-        // Update and draw drones
         drones.forEach(drone => {
             drone.y += drone.speed;
             context.drawImage(assets.drone, drone.x, drone.y, 80, 80);
         });
 
-        // Update and draw black drones
         blackDrones.forEach(drone => {
             drone.y += drone.speed;
             context.drawImage(assets.blackDrone, drone.x, drone.y, 80, 80);
         });
 
-        // Update and draw bombs
         bombs.forEach(bomb => {
             bomb.y += bomb.speed;
             context.drawImage(assets.bomb, bomb.x, bomb.y, 60, 60);
         });
 
-        // Update and draw snowflakes
         snowflakes.forEach(snowflake => {
             snowflake.y += snowflake.speed;
             context.drawImage(assets.snowflake, snowflake.x, snowflake.y, 20, 20);
         });
 
-        // Draw laser if active
-        if (laserActive) {
+        if (lasers.length > 0) {
+            let beam = lasers[0];
+            // Calculate the position of the tip of the gun
             const tipX = player.x + Math.cos(player.angle) * (player.size / 2);
             const tipY = player.y + Math.sin(player.angle) * (player.size / 2);
 
+            // Update the laser beam's position based on the gun's angle
+            beam.x = tipX;
+            beam.y = tipY;
+
+            // Draw the laser beam
             context.strokeStyle = 'red';
             context.lineWidth = 4;
             context.beginPath();
@@ -169,60 +167,96 @@ window.onload = function () {
             context.lineTo(tipX + Math.cos(player.angle) * canvas.height, tipY + Math.sin(player.angle) * canvas.height);
             context.stroke();
 
-            // Check for collisions with drones, black drones, and bombs
-            checkCollisions(tipX, tipY);
+            // Check for collisions with drones
+            drones.forEach((drone, i) => {
+                const droneRect = { x: drone.x, y: drone.y, width: 80, height: 80 };
+                const lineStart = { x: tipX, y: tipY };
+                const lineEnd = { x: tipX + Math.cos(player.angle) * canvas.height, y: tipY + Math.sin(player.angle) * canvas.height };
+
+                if (lineIntersectsRect(lineStart, lineEnd, droneRect)) {
+                    explosions.push({ x: drone.x, y: drone.y, timer: 30 });
+                    drones.splice(i, 1);
+                    score += 10;
+                    assets.explosionSound.play();
+                }
+            });
+
+            // Check for collisions with black drones
+            blackDrones.forEach((drone, i) => {
+                const droneRect = { x: drone.x, y: drone.y, width: 80, height: 80 };
+                const lineStart = { x: tipX, y: tipY };
+                const lineEnd = { x: tipX + Math.cos(player.angle) * canvas.height, y: tipY + Math.sin(player.angle) * canvas.height };
+
+                if (lineIntersectsRect(lineStart, lineEnd, droneRect)) {
+                    explosions.push({ x: drone.x, y: drone.y, timer: 30 });
+                    blackDrones.splice(i, 1);
+                    gameOver = true;
+                    assets.explosionSound.play();
+                    assets.gameOverSound.play(); // Play game over tune
+                }
+            });
+
+            // Check for collisions with bombs
+            bombs.forEach((bomb, i) => {
+                const bombRect = { x: bomb.x, y: bomb.y, width: 60, height: 60 };
+                const lineStart = { x: tipX, y: tipY };
+                const lineEnd = { x: tipX + Math.cos(player.angle) * canvas.height, y: tipY + Math.sin(player.angle) * canvas.height };
+
+                if (lineIntersectsRect(lineStart, lineEnd, bombRect)) {
+                    explosions.push({ x: bomb.x, y: bomb.y, timer: 30 });
+                    bombs.splice(i, 1);
+                    gameOver = true;
+                    assets.explosionSound.play();
+                    assets.gameOverSound.play(); // Play game over tune
+                }
+            });
         }
 
-        // Draw explosions
         explosions.forEach((exp, i) => {
             context.drawImage(assets.explosion, exp.x, exp.y, 100, 100);
             if (--exp.timer <= 0) explosions.splice(i, 1);
         });
 
-        // Display score
         context.fillStyle = 'white';
         context.font = '20px Arial';
         context.fillText('Score: ' + score, 20, 30);
 
         // Increase complexity when score reaches 50
         if (score >= 50) {
-            setInterval(createBlackDrone, 1500); // Spawn black drones more frequently
-            setInterval(createBomb, 2000); // Spawn bombs more frequently
+            // Increase spawn rate of drones and black drones
+            if (drones.length < 10) createDrone();
+            if (blackDrones.length < 5) createBlackDrone();
         }
 
         requestAnimationFrame(gameLoop);
     }
 
-    function checkCollisions(tipX, tipY) {
-        // Check for collisions with drones
-        drones.forEach((drone, i) => {
-            const droneRect = { x: drone.x, y: drone.y, width: 80, height: 80 };
-            const lineStart = { x: tipX, y: tipY };
-            const lineEnd = { x: tipX + Math.cos(player.angle) * canvas.height, y: tipY + Math.sin(player.angle) * canvas.height };
+    document.addEventListener('mousemove', (event) => {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = event.clientX - rect.left;
+        const mouseY = event.clientY - rect.top;
+        player.angle = Math.atan2(mouseY - player.y, mouseX - player.x);
+    });
 
-            if (lineIntersectsRect(lineStart, lineEnd, droneRect)) {
-                explosions.push({ x: drone.x, y: drone.y, timer: 30 });
-                drones.splice(i, 1);
-                score += 10;
-                assets.explosionSound.play();
-            }
-        });
+    document.addEventListener('mousedown', () => {
+        // Calculate the position of the tip of the gun
+        const tipX = player.x + Math.cos(player.angle) * (player.size / 2);
+        const tipY = player.y + Math.sin(player.angle) * (player.size / 2);
+        lasers = [{ x: tipX, y: tipY }];
+        assets.laserSound.currentTime = 0; // Reset sound to start
+        assets.laserSound.play();
+    });
 
-        // Check for collisions with black drones
-        blackDrones.forEach((drone, i) => {
-            const droneRect = { x: drone.x, y: drone.y, width: 80, height: 80 };
-            const lineStart = { x: tipX, y: tipY };
-            const lineEnd = { x: tipX + Math.cos(player.angle) * canvas.height, y: tipY + Math.sin(player.angle) * canvas.height };
+    document.addEventListener('mouseup', () => {
+        lasers = [];
+    });
 
-            if (lineIntersectsRect(lineStart, lineEnd, droneRect)) {
-                explosions.push({ x: drone.x, y: drone.y, timer: 30 });
-                blackDrones.splice(i, 1);
-                gameOver = true;
-                assets.explosionSound.play();
-                assets.gameOverSound.play(); // Play game over tune
-            }
-        });
+    setInterval(createDrone, 2000);
+    setInterval(createSnowflake, 500); // Create snowflakes every 500ms
+    setInterval(() => {
+        if (score > 50) createBlackDrone();
+        if (score > 100) createBomb();
+    }, 3000);
 
-        // Check for collisions with bombs
-        bombs.forEach((bomb, i) => {
-            const bombRect = { x: bomb.x, y: bomb.y, width: 60, height: 60
+    gameLoop();
+};
