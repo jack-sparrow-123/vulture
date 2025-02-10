@@ -200,4 +200,18 @@ window.onload = function () {
 
         explosions.forEach((explosion, i) => {
             if (explosion.timer > 0) {
-                context.drawImage(assets.explosion, explosion.x - 
+                context.drawImage(assets.explosion, explosion.x - 40, explosion.y - 40, 80, 80);
+                explosion.timer--;
+            } else {
+                explosions.splice(i, 1);
+            }
+        });
+
+        checkCollisions();
+        requestAnimationFrame(gameLoop);
+    }
+
+    setInterval(createDrone, 2000);
+    setInterval(createBomb, 5000);
+    gameLoop();
+};
