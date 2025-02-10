@@ -173,8 +173,17 @@ window.onload = function () {
         context.drawImage(assets.player, -player.size / 2, -player.size / 2, player.size, player.size);
         context.restore();
 
-        drones.forEach(drone => context.drawImage(drone.black ? assets.blackDrone : assets.drone, drone.x, drone.y, 80, 80));
-        bombs.forEach(bomb => context.drawImage(assets.bomb, bomb.x, bomb.y, 50, 50));
+        drones.forEach(drone => {
+            drone.y += drone.speed; // Update drone's position
+            if (drone.y > canvas.height) drones.splice(drones.indexOf(drone), 1); // Remove drone if it falls off screen
+            context.drawImage(drone.black ? assets.blackDrone : assets.drone, drone.x, drone.y, 80, 80);
+        });
+
+        bombs.forEach(bomb => {
+            bomb.y += bomb.speed; // Update bomb's position
+            if (bomb.y > canvas.height) bombs.splice(bombs.indexOf(bomb), 1); // Remove bomb if it falls off screen
+            context.drawImage(assets.bomb, bomb.x, bomb.y, 50, 50);
+        });
 
         lasers.forEach(laser => {
             laser.x += Math.cos(laser.angle) * laser.speed;
