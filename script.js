@@ -2,7 +2,7 @@ window.onload = function () {
     const canvas = document.getElementById('gameCanvas');
     const context = canvas.getContext('2d');
 
-    
+    // Load assets
     const assets = {
         player: new Image(),
         drone: new Image(),
@@ -15,7 +15,7 @@ window.onload = function () {
     };
     assets.player.src = 'gun2.png';
     assets.drone.src = 'drone2.png';
-    assets.blackDrone.src = 'blackdrone.png';
+    assets.blackDrone.src = 'black-drone.png';
     assets.bomb.src = 'bomb.png';
     assets.explosion.src = 'explosion.png';
     assets.snowflake.src = 'snowflake.png';
@@ -49,6 +49,33 @@ window.onload = function () {
         }
     }
     createSnowflakes();
+
+    // Handle shooting for keyboard, mouse, and touch
+    function shootLaser() {
+        if (!gameOver) {
+            lasers.push({ x: player.x, y: player.y });
+            assets.laserSound.currentTime = 0;
+            assets.laserSound.play();
+        }
+    }
+
+    // Keyboard input
+    document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space') { // Spacebar to shoot
+            shootLaser();
+        }
+    });
+
+    // Mouse input
+    canvas.addEventListener('mousedown', () => {
+        shootLaser();
+    });
+
+    // Touch input
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault(); // Prevent default touch behavior
+        shootLaser();
+    });
 
     function gameLoop() {
         if (gameOver) return;
