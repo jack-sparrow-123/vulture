@@ -92,7 +92,9 @@ window.onload = function () {
             context.fillStyle = 'red';
             context.font = '40px Arial';
             context.fillText('Game Over!', canvas.width / 2 - 100, canvas.height / 2);
-            if (!assets.gameOverSound.playing) assets.gameOverSound.play();
+            if (assets.gameOverSound.paused) {
+                assets.gameOverSound.play();
+            }
             return;
         }
 
