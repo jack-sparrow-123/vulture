@@ -33,7 +33,7 @@ window.onload = function () {
 
     let player = { x: canvas.width / 2, y: canvas.height - 100, size: 80, angle: 0 };
     let drones = [], blackDrones = [], bombs = [], lasers = [], explosions = [], score = 0;
-    let isAudioEnabled = false, gameOver = false, lives = 3;
+    let isAudioEnabled = false, gameOver = false;
 
     window.addEventListener('resize', () => {
         canvas.width = window.innerWidth;
@@ -47,31 +47,16 @@ window.onload = function () {
         }
     });
 
-    function createDrone() {
+    function createEntity(type, array, speedOffset) {
         if (!gameOver) {
-            drones.push({ x: Math.random() * (canvas.width - 80), y: 0, speed: Math.random() * 2 + 1 + score / 100 });
-        }
-    }
-
-    function createBlackDrone() {
-        if (!gameOver) {
-            blackDrones.push({ x: Math.random() * (canvas.width - 80), y: 0, speed: Math.random() * 2 + 2 + score / 100 });
-        }
-    }
-
-    function createBomb() {
-        if (!gameOver) {
-            bombs.push({ x: Math.random() * (canvas.width - 80), y: 0, speed: Math.random() * 2 + 2 + score / 100 });
+            array.push({ x: Math.random() * (canvas.width - 80), y: 0, speed: Math.random() * 2 + speedOffset + score / 100 });
         }
     }
 
     function checkCollision(laser, target) {
-        return (
-            laser.x > target.x &&
-            laser.x < target.x + 80 &&
-            laser.y > target.y &&
-            laser.y < target.y + 80
-        );
+        const dx = laser.x - (target.x + 40);
+        const dy = laser.y - (target.y + 40);
+        return Math.sqrt(dx * dx + dy * dy) < 40;
     }
 
     function drawLaser(laser) {
@@ -105,31 +90,24 @@ window.onload = function () {
         lasers.forEach(drawLaser);
 
         lasers.forEach(laser => {
-            drones = drones.filter((drone, index) => {
+            drones = drones.filter(drone => !checkCollision(laser, drone) || (score += 10));
+            blackDrones = blackDrones.filter(drone => {
                 if (checkCollision(laser, drone)) {
-                    score += 10;
+                    gameOver = true;
+                    assets.gameOverSound.play();
                     return false;
                 }
                 return true;
             });
 
-            blackDrones.forEach((drone) => {
-                if (checkCollision(laser, drone)) {
-                    lives--;
-                    if (lives <= 0) {
-                        gameOver = true;
-                        assets.gameOverSound.play();
-                    }
-                }
-            });
-
-            bombs.forEach((bomb, index) => {
+            bombs = bombs.filter(bomb => {
                 if (checkCollision(laser, bomb)) {
                     score -= 20;
                     assets.explosionSound.play();
                     explosions.push({ x: bomb.x, y: bomb.y, frame: 0 });
-                    bombs.splice(index, 1);
+                    return false;
                 }
+                return true;
             });
         });
 
@@ -142,11 +120,10 @@ window.onload = function () {
         context.fillStyle = 'white';
         context.font = '20px Arial';
         context.fillText('Score: ' + score, 20, 30);
-        context.fillText('Lives: ' + lives, 20, 60);
 
         if (score >= 50) {
-            if (drones.length < 10) createDrone();
-            if (blackDrones.length < 5) createBlackDrone();
+            if (drones.length < 10) createEntity('drone', drones, 1);
+            if (blackDrones.length < 5) createEntity('blackDrone', blackDrones, 2);
         }
 
         requestAnimationFrame(gameLoop);
@@ -167,13 +144,9 @@ window.onload = function () {
         assets.laserSound.play();
     });
 
-    document.addEventListener('mouseup', () => {
-        lasers = [];
-    });
-
-    setInterval(createDrone, 2000);
-    setInterval(() => { if (score > 50) createBlackDrone(); }, 3000);
-    setInterval(() => { if (score > 100) createBomb(); }, 5000);
+    setInterval(() => createEntity('drone', drones, 1), 2000);
+    setInterval(() => { if (score > 50) createEntity('blackDrone', blackDrones, 2); }, 3000);
+    setInterval(() => { if (score > 100) createEntity('bomb', bombs, 2); }, 5000);
 
     gameLoop();
 };
