@@ -92,7 +92,7 @@ window.onload = function () {
             context.fillStyle = 'red';
             context.font = '40px Arial';
             context.fillText('Game Over!', canvas.width / 2 - 100, canvas.height / 2);
-            assets.gameOverSound.play();
+            if (!assets.gameOverSound.playing) assets.gameOverSound.play();
             return;
         }
 
@@ -110,41 +110,42 @@ window.onload = function () {
 
         drawRotatedImage(assets.player, player.x, player.y, player.angle, player.size);
         
-        drones.forEach((drone, index) => {
+        drones = drones.filter(drone => {
             drone.y += drone.speed;
             context.drawImage(assets.drone, drone.x, drone.y, 80, 80);
-            lasers.forEach(laser => {
+            return !lasers.some(laser => {
                 if (checkCollision(laser, drone)) {
-                    drones.splice(index, 1);
                     explosions.push({ x: drone.x, y: drone.y, frame: 0 });
                     assets.explosionSound.play();
                     score += 10;
+                    return true;
                 }
+                return false;
             });
         });
 
-        blackDrones.forEach((drone, index) => {
+        blackDrones = blackDrones.filter(drone => {
             drone.y += drone.speed;
             context.drawImage(assets.blackDrone, drone.x, drone.y, 80, 80);
-            lasers.forEach(laser => {
-                if (checkCollision(laser, drone)) {
-                    gameOver = true;
-                    explosions.push({ x: drone.x, y: drone.y, frame: 0 });
-                    assets.gameOverSound.play();
-                }
-            });
+            if (lasers.some(laser => checkCollision(laser, drone))) {
+                gameOver = true;
+                explosions.push({ x: drone.x, y: drone.y, frame: 0 });
+                assets.gameOverSound.play();
+                return false;
+            }
+            return true;
         });
 
-        bombs.forEach((bomb, index) => {
+        bombs = bombs.filter(bomb => {
             bomb.y += bomb.speed;
             context.drawImage(assets.bomb, bomb.x, bomb.y, 60, 60);
-            lasers.forEach(laser => {
-                if (checkCollision(laser, bomb)) {
-                    gameOver = true;
-                    explosions.push({ x: bomb.x, y: bomb.y, frame: 0 });
-                    assets.explosionSound.play();
-                }
-            });
+            if (lasers.some(laser => checkCollision(laser, bomb))) {
+                gameOver = true;
+                explosions.push({ x: bomb.x, y: bomb.y, frame: 0 });
+                assets.explosionSound.play();
+                return false;
+            }
+            return true;
         });
 
         lasers.forEach(drawLaser);
@@ -161,17 +162,6 @@ window.onload = function () {
 
         requestAnimationFrame(gameLoop);
     }
-
-    document.addEventListener('touchmove', (event) => {
-        const touch = event.touches[0];
-        player.angle = Math.atan2(touch.clientY - player.y, touch.clientX - player.x);
-    });
-
-    document.addEventListener('touchstart', (event) => {
-        lasers.push({ x: player.x, y: player.y, angle: player.angle });
-        assets.laserSound.currentTime = 0;
-        assets.laserSound.play();
-    });
 
     setInterval(createDrone, 2000);
     setInterval(() => { if (score > 50) createBlackDrone(); }, 3000);
