@@ -19,11 +19,8 @@ window.onload = function () {
     assets.bomb.src = 'bomb.png';
     assets.explosion.src = 'explosion.png';
     assets.snowflake.src = 'snowflake.png';
-    assets.laserSound.volume = 1;
-    assets.laserSound.preload = 'auto';
-    assets.laserSound.load();
-    assets.explosionSound.preload = 'auto';
-    assets.explosionSound.load();
+    assets.laserSound.volume = 0.5;
+    assets.explosionSound.volume = 0.5;
 
     let player = { x: canvas.width / 2, y: canvas.height - 100, size: 80, angle: 0 };
     let drones = [], lasers = [], explosions = [], snowflakes = [], bombs = [], score = 0;
@@ -32,6 +29,7 @@ window.onload = function () {
 
     alert('Press M (Laptop) or Double Tap (Mobile) to switch between Beam and Drop gun.');
 
+    // Create drones
     function createDrone() {
         if (!gameOver) {
             let isBlack = Math.random() > 0.8;
@@ -39,12 +37,14 @@ window.onload = function () {
         }
     }
 
+    // Create bombs
     function createBomb() {
         if (!gameOver) {
             bombs.push({ x: Math.random() * (canvas.width - 50), y: 0, speed: Math.random() * 2 + 2 });
         }
     }
 
+    // Create snowflakes
     function createSnowflakes() {
         for (let i = 0; i < 50; i++) {
             snowflakes.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, speed: Math.random() * 2 + 1 });
@@ -52,38 +52,64 @@ window.onload = function () {
     }
     createSnowflakes();
 
-    function shootLaser() {
+    // Shoot laser or drop based on gun type
+    function shoot() {
         if (!gameOver) {
-            let laser = {
-                x: player.x,
-                y: player.y,
-                angle: player.angle,
-                speed: 7
-            };
-            lasers.push(laser);
-            if (assets.laserSound.paused) {
+            if (gunType === 'beam') {
+                let laser = {
+                    x: player.x,
+                    y: player.y,
+                    angle: player.angle,
+                    speed: 7
+                };
+                lasers.push(laser);
                 assets.laserSound.currentTime = 0;
                 assets.laserSound.play();
+            } else if (gunType === 'drop') {
+                bombs.push({ x: player.x, y: player.y, speed: 5 });
             }
         }
     }
 
+    // Keyboard controls
     document.addEventListener('keydown', (e) => {
-        if (e.code === 'Space') shootLaser();
+        if (e.code === 'Space') shoot(); // Shoot with spacebar
         if (e.code === 'ArrowLeft') player.angle -= Math.PI / 18; // Rotate left
         if (e.code === 'ArrowRight') player.angle += Math.PI / 18; // Rotate right
-        if (e.code === 'KeyM') gunType = gunType === 'beam' ? 'drop' : 'beam';
+        if (e.code === 'KeyM') gunType = gunType === 'beam' ? 'drop' : 'beam'; // Switch gun type
     });
 
-    canvas.addEventListener('mousedown', shootLaser);
+    // Mouse controls
+    canvas.addEventListener('mousemove', (e) => {
+        if (!gameOver) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            player.angle = Math.atan2(mouseY - player.y, mouseX - player.x);
+        }
+    });
+
+    canvas.addEventListener('mousedown', () => shoot()); // Shoot on mouse click
+
+    // Touch controls
+    canvas.addEventListener('touchmove', (e) => {
+        if (!gameOver) {
+            const rect = canvas.getBoundingClientRect();
+            const touchX = e.touches[0].clientX - rect.left;
+            const touchY = e.touches[0].clientY - rect.top;
+            player.angle = Math.atan2(touchY - player.y, touchX - player.x);
+            e.preventDefault(); // Prevent scrolling
+        }
+    });
+
     canvas.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        shootLaser();
+        e.preventDefault(); // Prevent scrolling
+        shoot(); // Shoot on touch
     });
 
+    // Game loop
     function gameLoop() {
         if (gameOver) {
-            // Draw game over screen
             context.fillStyle = 'rgba(0, 0, 0, 0.7)';
             context.fillRect(0, 0, canvas.width, canvas.height);
             context.fillStyle = 'white';
@@ -144,10 +170,9 @@ window.onload = function () {
                     drones.splice(i, 1);
                     lasers.splice(j, 1);
                     score += drone.black ? -20 : 10;
-                    if (assets.explosionSound.paused) {
-                        assets.explosionSound.currentTime = 0;
-                        assets.explosionSound.play();
-                    }
+                    assets.explosionSound.currentTime = 0;
+                    assets.explosionSound.play();
+                    if (drone.black) gameOver = true;
                 }
             });
         });
