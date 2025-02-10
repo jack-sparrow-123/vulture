@@ -13,10 +13,10 @@ window.onload = function () {
         laserSound: new Audio('attack-laser-128280.mp3'),
         explosionSound: new Audio('small-explosion-129477.mp3'),
         gameOverSound: new Audio('game-over.mp3'),
-        backgroundMusic: new Audio('background-music.mp3')
+        backgroundMusic: new Audio('lonely-winter-breeze-36867.mp3')
     };
 
-    // Set up paths for images and MP3 files (check their location relative to your project)
+    // Set up paths for images and MP3 files
     assets.player.src = 'gun2.png';
     assets.drone.src = 'drone2.png';
     assets.blackDrone.src = 'blackdrone.png';
@@ -36,9 +36,11 @@ window.onload = function () {
     assets.gameOverSound.load();
     assets.backgroundMusic.load();
 
-    // Play background music in a loop
-    assets.backgroundMusic.loop = true;
-    assets.backgroundMusic.play();
+    // Play background music after user interaction
+    document.addEventListener('click', () => {
+        assets.backgroundMusic.loop = true;
+        assets.backgroundMusic.play();
+    }, { once: true });
 
     let player = { x: canvas.width / 2, y: canvas.height - 100, size: 80, angle: 0 };
     let drones = [], lasers = [], explosions = [], snowflakes = [], bombs = [], score = 0;
@@ -85,7 +87,10 @@ window.onload = function () {
         if (e.code === 'Space') shoot();
         if (e.code === 'ArrowLeft') player.angle -= Math.PI / 18;
         if (e.code === 'ArrowRight') player.angle += Math.PI / 18;
-        if (e.code === 'KeyM') gunType = gunType === 'beam' ? 'drop' : 'beam';
+        if (e.code === 'KeyM') {
+            gunType = gunType === 'beam' ? 'drop' : 'beam';
+            console.log('Gun type switched to:', gunType); // Debugging
+        }
     });
 
     canvas.addEventListener('mousemove', (e) => {
@@ -100,13 +105,12 @@ window.onload = function () {
 
     function checkCollisions() {
         // Check collision between lasers and drones
-        drones.forEach((drone, i) => {
-            lasers.forEach((laser, j) => {
-                // Check laser hit on drone
+        lasers.forEach((laser, i) => {
+            drones.forEach((drone, j) => {
                 if (Math.hypot(laser.x - (drone.x + 40), laser.y - (drone.y + 40)) < 40) {
                     explosions.push({ x: drone.x, y: drone.y, timer: 30 });
-                    drones.splice(i, 1);  // Remove drone after collision
-                    lasers.splice(j, 1);  // Remove laser after collision
+                    drones.splice(j, 1);  // Remove drone after collision
+                    lasers.splice(i, 1);  // Remove laser after collision
                     score += drone.black ? -20 : 10;
                     assets.explosionSound.currentTime = 0;
                     assets.explosionSound.play();
@@ -118,7 +122,6 @@ window.onload = function () {
         // Check collision between bombs and drones
         bombs.forEach((bomb, i) => {
             drones.forEach((drone, j) => {
-                // Check if bomb hits drone
                 if (Math.hypot(bomb.x - (drone.x + 40), bomb.y - (drone.y + 40)) < 40) {
                     explosions.push({ x: drone.x, y: drone.y, timer: 30 });
                     drones.splice(j, 1);  // Remove drone after collision
