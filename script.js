@@ -2,6 +2,10 @@ window.onload = function () {
     const canvas = document.getElementById('gameCanvas');
     const context = canvas.getContext('2d');
 
+    // Set canvas size explicitly
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
     const assets = {
         player: new Image(),
         drone: new Image(),
@@ -38,26 +42,44 @@ window.onload = function () {
     function createDrone() {
         if (!gameOver) {
             let isBlack = Math.random() > 0.8;
-            drones.push({ x: Math.random() * (canvas.width - 80), y: 0, speed: Math.random() * 2 + 1, black: isBlack });
+            drones.push({ 
+                x: Math.random() * (canvas.width - 80), 
+                y: 0, 
+                speed: Math.random() * 2 + 1, 
+                black: isBlack 
+            });
         }
     }
 
     function createBomb() {
         if (!gameOver) {
-            bombs.push({ x: Math.random() * (canvas.width - 50), y: 0, speed: Math.random() * 2 + 2 });
+            bombs.push({ 
+                x: Math.random() * (canvas.width - 50), 
+                y: 0, 
+                speed: Math.random() * 2 + 2 
+            });
         }
     }
 
     function createSnowflakes() {
         for (let i = 0; i < 50; i++) {
-            snowflakes.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, speed: Math.random() * 2 + 1 });
+            snowflakes.push({ 
+                x: Math.random() * canvas.width, 
+                y: Math.random() * canvas.height, 
+                speed: Math.random() * 2 + 1 
+            });
         }
     }
     createSnowflakes();
 
     function shoot() {
         if (!gameOver) {
-            lasers.push({ x: player.x + Math.cos(player.angle) * player.size / 2, y: player.y + Math.sin(player.angle) * player.size / 2, angle: player.angle, speed: 10 });
+            lasers.push({
+                x: player.x + Math.cos(player.angle) * player.size / 2,
+                y: player.y + Math.sin(player.angle) * player.size / 2,
+                angle: player.angle,
+                speed: 10
+            });
             assets.laserSound.currentTime = 0;
             assets.laserSound.play();
         }
@@ -77,26 +99,27 @@ window.onload = function () {
     });
 
     function checkCollisions() {
-        lasers.forEach((laser, i) => {
-            drones.forEach((drone, j) => {
-                if (Math.hypot(laser.x - (drone.x + 40), laser.y - (drone.y + 40)) < 40) {
-                    explosions.push({ x: drone.x, y: drone.y, timer: 30 });
+        for (let i = lasers.length - 1; i >= 0; i--) {
+            for (let j = drones.length - 1; j >= 0; j--) {
+                if (Math.hypot(lasers[i].x - (drones[j].x + 40), lasers[i].y - (drones[j].y + 40)) < 40) {
+                    explosions.push({ x: drones[j].x, y: drones[j].y, timer: 30 });
                     drones.splice(j, 1);
                     lasers.splice(i, 1);
-                    score += drone.black ? -20 : 10;
+                    score += drones[j].black ? -20 : 10;
                     assets.explosionSound.play();
-                    if (drone.black) endGame();
+                    if (drones[j].black) endGame();
+                    break;
                 }
-            });
-        });
+            }
+        }
 
-        bombs.forEach((bomb, i) => {
-            if (Math.hypot(bomb.x - player.x, bomb.y - player.y) < 40) {
+        for (let i = bombs.length - 1; i >= 0; i--) {
+            if (Math.hypot(bombs[i].x - player.x, bombs[i].y - player.y) < 40) {
                 explosions.push({ x: player.x, y: player.y, timer: 30 });
                 bombs.splice(i, 1);
                 endGame();
             }
-        });
+        }
     }
 
     function endGame() {
@@ -134,6 +157,16 @@ window.onload = function () {
             laser.y += Math.sin(laser.angle) * laser.speed;
             context.fillStyle = 'red';
             context.fillRect(laser.x, laser.y, 5, 20);
+        });
+
+        drones.forEach(drone => {
+            drone.y += drone.speed;
+            context.drawImage(drone.black ? assets.blackDrone : assets.drone, drone.x, drone.y, 80, 80);
+        });
+
+        bombs.forEach(bomb => {
+            bomb.y += bomb.speed;
+            context.drawImage(assets.bomb, bomb.x, bomb.y, 50, 50);
         });
 
         checkCollisions();
