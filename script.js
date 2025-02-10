@@ -15,7 +15,7 @@ window.onload = function () {
     };
     assets.player.src = 'gun2.png';
     assets.drone.src = 'drone2.png';
-    assets.blackDrone.src = 'blackdrone.png';
+    assets.blackDrone.src = 'black-drone.png';
     assets.bomb.src = 'bomb.png';
     assets.explosion.src = 'explosion.png';
     assets.snowflake.src = 'snowflake.png';
@@ -50,14 +50,6 @@ window.onload = function () {
     }
     createSnowflakes();
 
-    function drawRotatedImage(img, x, y, angle, size) {
-        context.save();
-        context.translate(x, y);
-        context.rotate(angle);
-        context.drawImage(img, -size / 2, -size / 2, size, size);
-        context.restore();
-    }
-
     function gameLoop() {
         if (gameOver) return;
 
@@ -69,27 +61,18 @@ window.onload = function () {
             context.drawImage(assets.snowflake, flake.x, flake.y, 10, 10);
         });
 
-        drawRotatedImage(assets.player, player.x, player.y, player.angle, player.size);
+        context.drawImage(assets.player, player.x - player.size / 2, player.y - player.size / 2, player.size, player.size);
 
         drones.forEach((drone, i) => {
             drone.y += drone.speed;
             context.drawImage(drone.black ? assets.blackDrone : assets.drone, drone.x, drone.y, 80, 80);
-
             if (drone.y > canvas.height) drones.splice(i, 1);
-            if (Math.abs(drone.x - player.x) < 40 && Math.abs(drone.y - player.y) < 40) {
-                explosions.push({ x: player.x, y: player.y, timer: 30 });
-                gameOver = true;
-            }
         });
 
         bombs.forEach((bomb, i) => {
             bomb.y += bomb.speed;
             context.drawImage(assets.bomb, bomb.x, bomb.y, 50, 50);
             if (bomb.y > canvas.height) bombs.splice(i, 1);
-            if (Math.abs(bomb.x - player.x) < 40 && Math.abs(bomb.y - player.y) < 40) {
-                explosions.push({ x: player.x, y: player.y, timer: 30 });
-                gameOver = true;
-            }
         });
 
         lasers.forEach((laser, i) => {
@@ -106,13 +89,19 @@ window.onload = function () {
                     drones.splice(i, 1);
                     lasers.splice(j, 1);
                     score += drone.black ? -20 : 10;
+                    assets.explosionSound.currentTime = 0;
+                    assets.explosionSound.play();
                 }
             });
         });
 
-        explosions.forEach((exp, i) => {
-            context.drawImage(assets.explosion, exp.x, exp.y, 100, 100);
-            if (--exp.timer <= 0) explosions.splice(i, 1);
+        bombs.forEach((bomb, i) => {
+            if (Math.abs(bomb.x - player.x) < 40 && Math.abs(bomb.y - player.y) < 40) {
+                explosions.push({ x: player.x, y: player.y, timer: 30 });
+                gameOver = true;
+                assets.explosionSound.currentTime = 0;
+                assets.explosionSound.play();
+            }
         });
 
         context.fillStyle = 'white';
@@ -120,9 +109,13 @@ window.onload = function () {
         context.fillText('Score: ' + score, 20, 30);
 
         if (gameOver) {
-            context.fillStyle = 'red';
-            context.font = '40px Arial';
-            context.fillText('Game Over', canvas.width / 2 - 100, canvas.height / 2);
+            context.drawImage(assets.explosion, player.x - 50, player.y - 50, 100, 100);
+            return;
+        }
+
+        if (score >= 50) {
+            setInterval(createDrone, 1500);
+            setInterval(createBomb, 4000);
         }
 
         requestAnimationFrame(gameLoop);
