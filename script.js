@@ -12,7 +12,7 @@ window.onload = function () {
         laserSound: new Audio('attack-laser-128280.mp3'),
         explosionSound: new Audio('small-explosion-129477.mp3'),
         gameOverSound: new Audio('game-over.mp3'),
-        backgroundMusic: new Audio('background-music.mp3')
+        backgroundMusic: new Audio('lonely-winter-breeze-36867.mp3')
     };
 
     assets.player.src = 'gun2.png';
@@ -30,10 +30,9 @@ window.onload = function () {
 
     document.addEventListener('click', () => assets.backgroundMusic.play(), { once: true });
 
-    let player = { x: canvas.width / 2, y: canvas.height - 100, size: 80, angle: 0 };
+    let player = { x: canvas.width / 2, y: canvas.height - 100, size: 80 };
     let drones = [], lasers = [], explosions = [], snowflakes = [], bombs = [], score = 0;
     let gameOver = false;
-    let gunType = 'beam';
     let difficulty = 2000;
 
     function createDrone() {
@@ -49,22 +48,11 @@ window.onload = function () {
         }
     }
 
-    function createSnowflakes() {
-        for (let i = 0; i < 50; i++) {
-            snowflakes.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, speed: Math.random() * 2 + 1 });
-        }
-    }
-    createSnowflakes();
-
     function shoot() {
         if (!gameOver) {
-            if (gunType === 'beam') {
-                lasers.push({ x: player.x, y: player.y - 40, width: 5, height: canvas.height });
-                assets.laserSound.currentTime = 0;
-                assets.laserSound.play();
-            } else {
-                bombs.push({ x: player.x, y: player.y, speed: 5 });
-            }
+            lasers.push({ x: player.x - 20, width: 40, height: canvas.height });
+            assets.laserSound.currentTime = 0;
+            assets.laserSound.play();
         }
     }
 
@@ -72,13 +60,12 @@ window.onload = function () {
         if (e.code === 'Space') shoot();
         if (e.code === 'ArrowLeft') player.x = Math.max(0, player.x - 20);
         if (e.code === 'ArrowRight') player.x = Math.min(canvas.width, player.x + 20);
-        if (e.code === 'KeyM') gunType = gunType === 'beam' ? 'drop' : 'beam';
     });
 
     function checkCollisions() {
         drones.forEach((drone, j) => {
             lasers.forEach((laser, i) => {
-                if (laser.x >= drone.x && laser.x <= drone.x + 80) {
+                if (laser.x + laser.width >= drone.x && laser.x <= drone.x + 80) {
                     explosions.push({ x: drone.x, y: drone.y, timer: 30 });
                     drones.splice(j, 1);
                     lasers.splice(i, 1);
@@ -93,14 +80,6 @@ window.onload = function () {
             if (Math.hypot(bomb.x - player.x, bomb.y - player.y) < 40) {
                 explosions.push({ x: player.x, y: player.y, timer: 30 });
                 bombs.splice(i, 1);
-                endGame();
-            }
-        });
-
-        drones.forEach((drone, i) => {
-            if (drone.black && Math.hypot(player.x - drone.x, player.y - drone.y) < 40) {
-                explosions.push({ x: player.x, y: player.y, timer: 30 });
-                drones.splice(i, 1);
                 endGame();
             }
         });
@@ -125,16 +104,11 @@ window.onload = function () {
         context.fillStyle = '#001F3F';
         context.fillRect(0, 0, canvas.width, canvas.height);
 
-        snowflakes.forEach(flake => {
-            flake.y = (flake.y + flake.speed) % canvas.height;
-            context.drawImage(assets.snowflake, flake.x, flake.y, 10, 10);
-        });
-
         context.drawImage(assets.player, player.x - 40, player.y - 40, 80, 80);
 
         lasers.forEach(laser => {
             context.fillStyle = 'red';
-            context.fillRect(laser.x - 2, 0, laser.width, laser.height);
+            context.fillRect(laser.x, 0, laser.width, laser.height);
         });
 
         checkCollisions();
