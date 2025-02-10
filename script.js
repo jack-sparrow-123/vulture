@@ -1,6 +1,4 @@
 const assets = {};
-let isAudioEnabled = false;
-let isPaused = false;
 let gameOver = false;
 let score = 0;
 let laserMode = 'beam'; // 'beam' or 'drop'
@@ -38,16 +36,7 @@ function drawRotatedImage(image, x, y, angle, size) {
 
 // Event listeners
 document.addEventListener('click', () => {
-    if (!isAudioEnabled) {
-        assets.backgroundMusic.play().catch(error => console.error('Error playing background music:', error));
-        isAudioEnabled = true;
-    }
     fireLaser();
-});
-
-document.getElementById('pauseButton').addEventListener('click', () => {
-    isPaused = !isPaused;
-    isPaused ? assets.backgroundMusic.pause() : assets.backgroundMusic.play();
 });
 
 document.addEventListener('keydown', (event) => {
@@ -141,7 +130,6 @@ function gameLoop() {
         context.fillText('Final Score: ' + score, canvas.width / 2 - 120, canvas.height / 2 + 50);
         return;
     }
-    if (isPaused) return;
     context.fillStyle = '#001F3F';
     context.fillRect(0, 0, canvas.width, canvas.height);
     drawRotatedImage(assets.player, player.x, player.y, player.angle, player.size);
@@ -176,5 +164,7 @@ Promise.all([
     assets.explosionSound = loadedAssets[7];
     assets.backgroundMusic = loadedAssets[8];
     assets.gameOverSound = loadedAssets[9];
+    assets.backgroundMusic.loop = true; // Loop background music
+    assets.backgroundMusic.play(); // Start background music
     gameLoop();
 }).catch(error => console.error('Error loading assets:', error));
