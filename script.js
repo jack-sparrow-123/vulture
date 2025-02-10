@@ -12,10 +12,11 @@ window.onload = function () {
         snowflake: new Image(),
         laserSound: new Audio('attack-laser-128280.mp3'),
         explosionSound: new Audio('small-explosion-129477.mp3'),
-        gameOverSound: new Audio('game-over.mp3')
+        gameOverSound: new Audio('game-over.mp3'),
+        backgroundMusic: new Audio('lonely-winter-breeze-36867.mp3')
     };
 
-    // Set up paths for MP3 files (check their location relative to your project)
+    // Set up paths for images and MP3 files (check their location relative to your project)
     assets.player.src = 'gun2.png';
     assets.drone.src = 'drone2.png';
     assets.blackDrone.src = 'blackdrone.png';
@@ -27,11 +28,17 @@ window.onload = function () {
     assets.laserSound.volume = 0.5;
     assets.explosionSound.volume = 0.5;
     assets.gameOverSound.volume = 0.7;
+    assets.backgroundMusic.volume = 0.2;
 
     // Preload sounds to ensure they are ready when needed
     assets.laserSound.load();
     assets.explosionSound.load();
     assets.gameOverSound.load();
+    assets.backgroundMusic.load();
+
+    // Play background music in a loop
+    assets.backgroundMusic.loop = true;
+    assets.backgroundMusic.play();
 
     let player = { x: canvas.width / 2, y: canvas.height - 100, size: 80, angle: 0 };
     let drones = [], lasers = [], explosions = [], snowflakes = [], bombs = [], score = 0;
@@ -63,7 +70,9 @@ window.onload = function () {
     function shoot() {
         if (!gameOver) {
             if (gunType === 'beam') {
-                lasers.push({ x: player.x + Math.cos(player.angle) * 40, y: player.y + Math.sin(player.angle) * 40, angle: player.angle, speed: 7 });
+                const laserStartX = player.x + Math.cos(player.angle) * player.size / 2;
+                const laserStartY = player.y + Math.sin(player.angle) * player.size / 2;
+                lasers.push({ x: laserStartX, y: laserStartY, angle: player.angle, speed: 7 });
                 assets.laserSound.currentTime = 0;
                 assets.laserSound.play();
             } else {
@@ -88,11 +97,11 @@ window.onload = function () {
 
     canvas.addEventListener('mousedown', () => shoot());
     canvas.addEventListener('touchstart', (e) => { e.preventDefault(); shoot(); });
-    
+
     function checkCollisions() {
-        // Check collision between drones and lasers
         drones.forEach((drone, i) => {
             lasers.forEach((laser, j) => {
+                // Check if laser hits drone
                 if (Math.hypot(laser.x - (drone.x + 40), laser.y - (drone.y + 40)) < 40) {
                     explosions.push({ x: drone.x, y: drone.y, timer: 30 });
                     drones.splice(i, 1);
@@ -105,7 +114,6 @@ window.onload = function () {
             });
         });
 
-        // Check collision between bombs and player
         bombs.forEach((bomb, i) => {
             if (Math.hypot(bomb.x - player.x, bomb.y - player.y) < 40) {
                 explosions.push({ x: player.x, y: player.y, timer: 30 });
@@ -117,7 +125,7 @@ window.onload = function () {
 
     function endGame() {
         gameOver = true;
-        assets.gameOverSound.currentTime = 0; // Reset sound time before playing
+        assets.gameOverSound.currentTime = 0;
         assets.gameOverSound.play();
     }
 
