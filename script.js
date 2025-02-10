@@ -45,7 +45,7 @@ window.onload = function () {
     let player = { x: canvas.width / 2, y: canvas.height - 100, size: 80, angle: 0 };
     let drones = [], lasers = [], explosions = [], snowflakes = [], bombs = [], score = 0;
     let gameOver = false;
-    let gunType = 'beam';
+    let gunType = 'beam';  // Default gun type is 'beam'
 
     alert('Press M (Laptop) or Double Tap (Mobile) to switch between Beam and Drop gun.');
 
@@ -140,6 +140,15 @@ window.onload = function () {
             if (Math.hypot(bomb.x - player.x, bomb.y - player.y) < 40) {
                 explosions.push({ x: player.x, y: player.y, timer: 30 });
                 bombs.splice(i, 1);  // Remove bomb on collision
+                endGame();
+            }
+        });
+
+        // Check collision between player and black drone
+        drones.forEach((drone, i) => {
+            if (drone.black && Math.hypot(player.x - drone.x, player.y - drone.y) < 40) {
+                explosions.push({ x: player.x, y: player.y, timer: 30 });
+                drones.splice(i, 1);  // Remove black drone after collision
                 endGame();
             }
         });
