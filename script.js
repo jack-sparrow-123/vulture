@@ -11,7 +11,8 @@ window.onload = function () {
         explosion: new Image(),
         snowflake: new Image(),
         laserSound: new Audio('attack-laser-128280.mp3'),
-        explosionSound: new Audio('small-explosion-129477.mp3')
+        explosionSound: new Audio('small-explosion-129477.mp3'),
+        gameOverSound: new Audio('game-over.mp3')
     };
     assets.player.src = 'gun2.png';
     assets.drone.src = 'drone2.png';
@@ -21,6 +22,7 @@ window.onload = function () {
     assets.snowflake.src = 'snowflake.png';
     assets.laserSound.volume = 0.5;
     assets.explosionSound.volume = 0.5;
+    assets.gameOverSound.volume = 0.7;
 
     let player = { x: canvas.width / 2, y: canvas.height - 100, size: 80, angle: 0 };
     let drones = [], lasers = [], explosions = [], snowflakes = [], bombs = [], score = 0;
@@ -29,7 +31,6 @@ window.onload = function () {
 
     alert('Press M (Laptop) or Double Tap (Mobile) to switch between Beam and Drop gun.');
 
-    // Create drones
     function createDrone() {
         if (!gameOver) {
             let isBlack = Math.random() > 0.8;
@@ -37,14 +38,12 @@ window.onload = function () {
         }
     }
 
-    // Create bombs
     function createBomb() {
         if (!gameOver) {
             bombs.push({ x: Math.random() * (canvas.width - 50), y: 0, speed: Math.random() * 2 + 2 });
         }
     }
 
-    // Create snowflakes
     function createSnowflakes() {
         for (let i = 0; i < 50; i++) {
             snowflakes.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, speed: Math.random() * 2 + 1 });
@@ -52,62 +51,63 @@ window.onload = function () {
     }
     createSnowflakes();
 
-    // Shoot laser or drop based on gun type
     function shoot() {
         if (!gameOver) {
             if (gunType === 'beam') {
-                let laser = {
-                    x: player.x,
-                    y: player.y,
-                    angle: player.angle,
-                    speed: 7
-                };
-                lasers.push(laser);
+                lasers.push({ x: player.x + Math.cos(player.angle) * 40, y: player.y + Math.sin(player.angle) * 40, angle: player.angle, speed: 7 });
                 assets.laserSound.currentTime = 0;
                 assets.laserSound.play();
-            } else if (gunType === 'drop') {
+            } else {
                 bombs.push({ x: player.x, y: player.y, speed: 5 });
             }
         }
     }
 
-    // Keyboard controls
     document.addEventListener('keydown', (e) => {
-        if (e.code === 'Space') shoot(); // Shoot with spacebar
-        if (e.code === 'ArrowLeft') player.angle -= Math.PI / 18; // Rotate left
-        if (e.code === 'ArrowRight') player.angle += Math.PI / 18; // Rotate right
-        if (e.code === 'KeyM') gunType = gunType === 'beam' ? 'drop' : 'beam'; // Switch gun type
+        if (e.code === 'Space') shoot();
+        if (e.code === 'ArrowLeft') player.angle -= Math.PI / 18;
+        if (e.code === 'ArrowRight') player.angle += Math.PI / 18;
+        if (e.code === 'KeyM') gunType = gunType === 'beam' ? 'drop' : 'beam';
     });
 
-    // Mouse controls
     canvas.addEventListener('mousemove', (e) => {
         if (!gameOver) {
             const rect = canvas.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const mouseY = e.clientY - rect.top;
-            player.angle = Math.atan2(mouseY - player.y, mouseX - player.x);
+            player.angle = Math.atan2(e.clientY - rect.top - player.y, e.clientX - rect.left - player.x);
         }
     });
 
-    canvas.addEventListener('mousedown', () => shoot()); // Shoot on mouse click
+    canvas.addEventListener('mousedown', () => shoot());
+    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); shoot(); });
+    
+    function checkCollisions() {
+        drones.forEach((drone, i) => {
+            lasers.forEach((laser, j) => {
+                if (Math.hypot(laser.x - (drone.x + 40), laser.y - (drone.y + 40)) < 40) {
+                    explosions.push({ x: drone.x, y: drone.y, timer: 30 });
+                    drones.splice(i, 1);
+                    lasers.splice(j, 1);
+                    score += drone.black ? -20 : 10;
+                    assets.explosionSound.currentTime = 0;
+                    assets.explosionSound.play();
+                    if (drone.black) endGame();
+                }
+            });
+        });
 
-    // Touch controls
-    canvas.addEventListener('touchmove', (e) => {
-        if (!gameOver) {
-            const rect = canvas.getBoundingClientRect();
-            const touchX = e.touches[0].clientX - rect.left;
-            const touchY = e.touches[0].clientY - rect.top;
-            player.angle = Math.atan2(touchY - player.y, touchX - player.x);
-            e.preventDefault(); // Prevent scrolling
-        }
-    });
+        bombs.forEach((bomb, i) => {
+            if (Math.hypot(bomb.x - player.x, bomb.y - player.y) < 40) {
+                explosions.push({ x: player.x, y: player.y, timer: 30 });
+                endGame();
+            }
+        });
+    }
 
-    canvas.addEventListener('touchstart', (e) => {
-        e.preventDefault(); // Prevent scrolling
-        shoot(); // Shoot on touch
-    });
+    function endGame() {
+        gameOver = true;
+        assets.gameOverSound.play();
+    }
 
-    // Game loop
     function gameLoop() {
         if (gameOver) {
             context.fillStyle = 'rgba(0, 0, 0, 0.7)';
@@ -120,79 +120,33 @@ window.onload = function () {
             return;
         }
 
-        // Clear the canvas
         context.fillStyle = '#001F3F';
         context.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw snowflakes
         snowflakes.forEach(flake => {
             flake.y = (flake.y + flake.speed) % canvas.height;
             context.drawImage(assets.snowflake, flake.x, flake.y, 10, 10);
         });
 
-        // Draw player with rotation
         context.save();
         context.translate(player.x, player.y);
         context.rotate(player.angle);
         context.drawImage(assets.player, -player.size / 2, -player.size / 2, player.size, player.size);
         context.restore();
 
-        // Draw drones
-        drones.forEach((drone, i) => {
-            drone.y += drone.speed;
-            context.drawImage(drone.black ? assets.blackDrone : assets.drone, drone.x, drone.y, 80, 80);
-            if (drone.y > canvas.height) drones.splice(i, 1);
-        });
+        drones.forEach(drone => context.drawImage(drone.black ? assets.blackDrone : assets.drone, drone.x, drone.y, 80, 80));
+        bombs.forEach(bomb => context.drawImage(assets.bomb, bomb.x, bomb.y, 50, 50));
 
-        // Draw bombs
-        bombs.forEach((bomb, i) => {
-            bomb.y += bomb.speed;
-            context.drawImage(assets.bomb, bomb.x, bomb.y, 50, 50);
-            if (bomb.y > canvas.height) bombs.splice(i, 1);
-        });
-
-        // Draw lasers
-        lasers.forEach((laser, i) => {
+        lasers.forEach(laser => {
             laser.x += Math.cos(laser.angle) * laser.speed;
             laser.y += Math.sin(laser.angle) * laser.speed;
             context.fillStyle = 'red';
             context.beginPath();
             context.arc(laser.x, laser.y, 3, 0, Math.PI * 2);
             context.fill();
-            if (laser.x < 0 || laser.x > canvas.width || laser.y < 0 || laser.y > canvas.height) lasers.splice(i, 1);
         });
 
-        // Check for collisions between lasers and drones
-        drones.forEach((drone, i) => {
-            lasers.forEach((laser, j) => {
-                if (laser.x < drone.x + 80 && laser.x + 6 > drone.x && laser.y < drone.y + 80 && laser.y + 15 > drone.y) {
-                    explosions.push({ x: drone.x, y: drone.y, timer: 30 });
-                    drones.splice(i, 1);
-                    lasers.splice(j, 1);
-                    score += drone.black ? -20 : 10;
-                    assets.explosionSound.currentTime = 0;
-                    assets.explosionSound.play();
-                    if (drone.black) gameOver = true;
-                }
-            });
-        });
-
-        // Check for collisions between bombs and player
-        bombs.forEach((bomb, i) => {
-            if (Math.abs(bomb.x - player.x) < 40 && Math.abs(bomb.y - player.y) < 40) {
-                explosions.push({ x: player.x, y: player.y, timer: 30 });
-                gameOver = true;
-                assets.explosionSound.currentTime = 0;
-                assets.explosionSound.play();
-            }
-        });
-
-        // Draw score
-        context.fillStyle = 'white';
-        context.font = '20px Arial';
-        context.fillText('Score: ' + score, 20, 30);
-
-        // Continue the game loop
+        checkCollisions();
         requestAnimationFrame(gameLoop);
     }
 
