@@ -25,7 +25,7 @@ window.onload = function () {
     assets.explosionSound.preload = 'auto';
     assets.explosionSound.load();
 
-    let player = { x: canvas.width / 2, y: canvas.height - 100, size: 80 };
+    let player = { x: canvas.width / 2, y: canvas.height - 100, size: 80, angle: 0 };
     let drones = [], lasers = [], explosions = [], snowflakes = [], bombs = [], score = 0;
     let gameOver = false;
     let gunType = 'beam';
@@ -54,7 +54,13 @@ window.onload = function () {
 
     function shootLaser() {
         if (!gameOver) {
-            lasers.push({ x: player.x, y: player.y });
+            let laser = {
+                x: player.x,
+                y: player.y,
+                angle: player.angle,
+                speed: 7
+            };
+            lasers.push(laser);
             if (assets.laserSound.paused) {
                 assets.laserSound.currentTime = 0;
                 assets.laserSound.play();
@@ -64,8 +70,8 @@ window.onload = function () {
 
     document.addEventListener('keydown', (e) => {
         if (e.code === 'Space') shootLaser();
-        if (e.code === 'ArrowLeft' && player.x > 0) player.x -= 20;
-        if (e.code === 'ArrowRight' && player.x < canvas.width) player.x += 20;
+        if (e.code === 'ArrowLeft') player.angle -= Math.PI / 18;
+        if (e.code === 'ArrowRight') player.angle += Math.PI / 18;
         if (e.code === 'KeyM') gunType = gunType === 'beam' ? 'drop' : 'beam';
     });
 
@@ -85,7 +91,11 @@ window.onload = function () {
             context.drawImage(assets.snowflake, flake.x, flake.y, 10, 10);
         });
 
-        context.drawImage(assets.player, player.x - player.size / 2, player.y - player.size / 2, player.size, player.size);
+        context.save();
+        context.translate(player.x, player.y);
+        context.rotate(player.angle);
+        context.drawImage(assets.player, -player.size / 2, -player.size / 2, player.size, player.size);
+        context.restore();
 
         drones.forEach((drone, i) => {
             drone.y += drone.speed;
@@ -100,10 +110,13 @@ window.onload = function () {
         });
 
         lasers.forEach((laser, i) => {
-            laser.y -= 7;
+            laser.x += Math.cos(laser.angle) * laser.speed;
+            laser.y += Math.sin(laser.angle) * laser.speed;
             context.fillStyle = 'red';
-            context.fillRect(laser.x, laser.y, 6, 15);
-            if (laser.y < 0) lasers.splice(i, 1);
+            context.beginPath();
+            context.arc(laser.x, laser.y, 3, 0, Math.PI * 2);
+            context.fill();
+            if (laser.x < 0 || laser.x > canvas.width || laser.y < 0 || laser.y > canvas.height) lasers.splice(i, 1);
         });
 
         drones.forEach((drone, i) => {
@@ -136,6 +149,9 @@ window.onload = function () {
 
         if (gameOver) {
             context.drawImage(assets.explosion, player.x - 50, player.y - 50, 100, 100);
+            context.fillStyle = 'white';
+            context.font = '40px Arial';
+            context.fillText('Game Over', canvas.width / 2 - 100, canvas.height / 2);
             return;
         }
 
