@@ -15,7 +15,7 @@ window.onload = function () {
     };
     assets.player.src = 'gun2.png';
     assets.drone.src = 'drone2.png';
-    assets.blackDrone.src = 'blackdrone.png.';
+    assets.blackDrone.src = 'blackdrone.png';
     assets.bomb.src = 'bomb.png';
     assets.explosion.src = 'explosion.png';
     assets.snowflake.src = 'snowflake.png';
