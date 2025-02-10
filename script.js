@@ -32,7 +32,7 @@ window.onload = function () {
     assets.backgroundMusic.loop = true;
 
     let player = { x: canvas.width / 2, y: canvas.height - 100, size: 80, angle: 0 };
-    let drones = [], blackDrones = [], bombs = [], lasers = [], explosions = [], score = 0;
+    let drones = [], blackDrones = [], bombs = [], lasers = [], explosions = [], snowflakes = [], score = 0;
     let isAudioEnabled = false, gameOver = false, lives = 3;
 
     window.addEventListener('resize', () => {
@@ -63,6 +63,10 @@ window.onload = function () {
         if (!gameOver) {
             bombs.push({ x: Math.random() * (canvas.width - 80), y: 0, speed: Math.random() * 2 + 2 + score / 100 });
         }
+    }
+
+    function createSnowflake() {
+        snowflakes.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 1 });
     }
 
     function checkCollision(laser, target) {
@@ -97,6 +101,17 @@ window.onload = function () {
 
         context.fillStyle = '#001F3F';
         context.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw snowflakes
+        context.fillStyle = 'white';
+        snowflakes.forEach((snowflake, index) => {
+            snowflake.y += snowflake.speed;
+            context.beginPath();
+            context.arc(snowflake.x, snowflake.y, 2, 0, Math.PI * 2);
+            context.fill();
+            if (snowflake.y > canvas.height) snowflakes.splice(index, 1); // Remove snowflake if it falls off screen
+        });
+
         drawRotatedImage(assets.player, player.x, player.y, player.angle, player.size);
 
         // Update and draw drones
@@ -136,12 +151,12 @@ window.onload = function () {
             blackDrones.forEach((drone, index) => {
                 if (checkCollision(laser, drone)) {
                     lives--;
+                    explosions.push({ x: drone.x, y: drone.y, frame: 0 }); // Trigger explosion
+                    blackDrones.splice(index, 1); // Remove the black drone
                     if (lives <= 0) {
                         gameOver = true;
                         assets.gameOverSound.play();
                     }
-                    explosions.push({ x: drone.x, y: drone.y, frame: 0 }); // Trigger explosion
-                    blackDrones.splice(index, 1); // Remove the black drone
                 }
             });
 
@@ -202,6 +217,7 @@ window.onload = function () {
     setInterval(createDrone, 2000);
     setInterval(() => { if (score > 50) createBlackDrone(); }, 3000);
     setInterval(() => { if (score > 100) createBomb(); }, 5000);
+    setInterval(createSnowflake, 200); // Add snowflakes continuously
 
     gameLoop();
 };
