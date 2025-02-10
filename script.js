@@ -13,7 +13,7 @@ window.onload = function () {
         laserSound: new Audio('attack-laser-128280.mp3'),
         explosionSound: new Audio('small-explosion-129477.mp3'),
         gameOverSound: new Audio('game-over.mp3'),
-        backgroundMusic: new Audio('lonely-winter-breeze-36867.mp3')
+        backgroundMusic: new Audio('background-music.mp3')
     };
 
     // Set up paths for images and MP3 files (check their location relative to your project)
@@ -99,25 +99,43 @@ window.onload = function () {
     canvas.addEventListener('touchstart', (e) => { e.preventDefault(); shoot(); });
 
     function checkCollisions() {
+        // Check collision between lasers and drones
         drones.forEach((drone, i) => {
             lasers.forEach((laser, j) => {
-                // Check if laser hits drone
+                // Check laser hit on drone
                 if (Math.hypot(laser.x - (drone.x + 40), laser.y - (drone.y + 40)) < 40) {
                     explosions.push({ x: drone.x, y: drone.y, timer: 30 });
-                    drones.splice(i, 1);
-                    lasers.splice(j, 1);
+                    drones.splice(i, 1);  // Remove drone after collision
+                    lasers.splice(j, 1);  // Remove laser after collision
                     score += drone.black ? -20 : 10;
                     assets.explosionSound.currentTime = 0;
                     assets.explosionSound.play();
-                    if (drone.black) endGame();
+                    if (drone.black) endGame();  // End game if black drone is hit
                 }
             });
         });
 
+        // Check collision between bombs and drones
+        bombs.forEach((bomb, i) => {
+            drones.forEach((drone, j) => {
+                // Check if bomb hits drone
+                if (Math.hypot(bomb.x - (drone.x + 40), bomb.y - (drone.y + 40)) < 40) {
+                    explosions.push({ x: drone.x, y: drone.y, timer: 30 });
+                    drones.splice(j, 1);  // Remove drone after collision
+                    bombs.splice(i, 1);  // Remove bomb after collision
+                    score += drone.black ? -20 : 10;
+                    assets.explosionSound.currentTime = 0;
+                    assets.explosionSound.play();
+                    if (drone.black) endGame();  // End game if black drone is hit
+                }
+            });
+        });
+
+        // Check collision between bombs and player
         bombs.forEach((bomb, i) => {
             if (Math.hypot(bomb.x - player.x, bomb.y - player.y) < 40) {
                 explosions.push({ x: player.x, y: player.y, timer: 30 });
-                bombs.splice(i, 1); // Remove bomb on collision
+                bombs.splice(i, 1);  // Remove bomb on collision
                 endGame();
             }
         });
