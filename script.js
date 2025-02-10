@@ -30,10 +30,10 @@ window.onload = function () {
     assets.bomb.src = 'bomb.png';
     assets.explosion.src = 'explosion.png';
     assets.backgroundMusic.loop = true;
-    
+
     let player = { x: canvas.width / 2, y: canvas.height - 100, size: 80, angle: 0 };
     let drones = [], blackDrones = [], bombs = [], lasers = [], explosions = [], score = 0;
-    let isAudioEnabled = false, gameOver = false;
+    let isAudioEnabled = false, gameOver = false, lives = 3;
 
     window.addEventListener('resize', () => {
         canvas.width = window.innerWidth;
@@ -80,7 +80,7 @@ window.onload = function () {
         context.beginPath();
         context.moveTo(laser.x, laser.y);
         context.lineTo(
-            laser.x + Math.cos(laser.angle) * canvas.height, 
+            laser.x + Math.cos(laser.angle) * canvas.height,
             laser.y + Math.sin(laser.angle) * canvas.height
         );
         context.stroke();
@@ -115,14 +115,17 @@ window.onload = function () {
 
             blackDrones.forEach((drone) => {
                 if (checkCollision(laser, drone)) {
-                    gameOver = true;
-                    assets.gameOverSound.play();
+                    lives--;
+                    if (lives <= 0) {
+                        gameOver = true;
+                        assets.gameOverSound.play();
+                    }
                 }
             });
 
             bombs.forEach((bomb, index) => {
                 if (checkCollision(laser, bomb)) {
-                    gameOver = true;
+                    score -= 20;
                     assets.explosionSound.play();
                     explosions.push({ x: bomb.x, y: bomb.y, frame: 0 });
                     bombs.splice(index, 1);
@@ -139,6 +142,7 @@ window.onload = function () {
         context.fillStyle = 'white';
         context.font = '20px Arial';
         context.fillText('Score: ' + score, 20, 30);
+        context.fillText('Lives: ' + lives, 20, 60);
 
         if (score >= 50) {
             if (drones.length < 10) createDrone();
