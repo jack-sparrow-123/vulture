@@ -9,11 +9,40 @@ const player = { x: 300, y: 500, size: 50, angle: 0 };
 const canvas = document.getElementById('gameCanvas');
 const context = canvas.getContext('2d');
 
+// Helper functions to load assets
+function loadImage(src) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.src = src;
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
+    });
+}
+
+function loadAudio(src) {
+    return new Promise((resolve, reject) => {
+        const audio = new Audio(src);
+        audio.oncanplaythrough = () => resolve(audio);
+        audio.onerror = () => reject(new Error(`Failed to load audio: ${src}`));
+    });
+}
+
+// Draw rotated image
+function drawRotatedImage(image, x, y, angle, size) {
+    context.save();
+    context.translate(x + size / 2, y + size / 2);
+    context.rotate(angle);
+    context.drawImage(image, -size / 2, -size / 2, size, size);
+    context.restore();
+}
+
+// Event listeners
 document.addEventListener('click', () => {
     if (!isAudioEnabled) {
         assets.backgroundMusic.play().catch(error => console.error('Error playing background music:', error));
         isAudioEnabled = true;
     }
+    fireLaser();
 });
 
 document.getElementById('pauseButton').addEventListener('click', () => {
@@ -50,8 +79,6 @@ function fireLaser() {
     explosions.push({ x: player.x + 20, y: player.y, size: 10, mode: laserMode });
     assets.laserSound.play();
 }
-
-document.addEventListener('click', fireLaser);
 
 document.addEventListener('keydown', (event) => {
     if (event.key === ' ') fireLaser();
@@ -126,6 +153,7 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
+// Load assets and start the game
 Promise.all([
     loadImage('gun2.png'),
     loadImage('drone2.png'),
