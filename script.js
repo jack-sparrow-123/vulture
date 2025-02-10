@@ -104,6 +104,18 @@ window.onload = function () {
     canvas.addEventListener('mousedown', () => shoot());
     canvas.addEventListener('touchstart', (e) => { e.preventDefault(); shoot(); });
 
+    // Double tap to switch gun type on mobile
+    let lastTap = 0;
+    canvas.addEventListener('touchend', (e) => {
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - lastTap;
+        if (tapLength < 300 && tapLength > 0) {
+            gunType = gunType === 'beam' ? 'drop' : 'beam';
+            console.log('Gun type switched to:', gunType); // Debugging
+        }
+        lastTap = currentTime;
+    });
+
     function checkCollisions() {
         // Check collision between lasers and drones
         lasers.forEach((laser, i) => {
