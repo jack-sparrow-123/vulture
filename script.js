@@ -1,10 +1,16 @@
 window.onload = function () {
     const canvas = document.getElementById('gameCanvas');
     const context = canvas.getContext('2d');
-
-    // Set canvas size
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+
+    function drawRotatedImage(img, x, y, angle, size) {
+        context.save();
+        context.translate(x, y);
+        context.rotate(angle);
+        context.drawImage(img, -size / 2, -size / 2, size, size);
+        context.restore();
+    }
 
     // Load assets
     const assets = {
@@ -16,180 +22,226 @@ window.onload = function () {
         snowflake: new Image(),
         laserSound: new Audio('attack-laser-128280.mp3'),
         explosionSound: new Audio('small-explosion-129477.mp3'),
-        gameOverSound: new Audio('game-over.mp3'),
         backgroundMusic: new Audio('lonely-winter-breeze-36867.mp3')
     };
-
-    assets.player.src = 'gun2.png';
-    assets.drone.src = 'drone2.png';
-    assets.blackDrone.src = 'blackdrone.png';
-    assets.bomb.src = 'bomb.png';
-    assets.explosion.src = 'explosion.png';
-    assets.snowflake.src = 'snowflake.png';
-
-    assets.laserSound.volume = 0.5;
-    assets.explosionSound.volume = 0.5;
-    assets.gameOverSound.volume = 0.7;
-    assets.backgroundMusic.volume = 0.2;
+    assets.player.src = 'gun2.png.png';
+    assets.drone.src = 'drone2.png.png';
+    assets.blackDrone.src = 'blackdrone.png.png';
+    assets.bomb.src = 'bomb.png.png';
+    assets.explosion.src = 'explosion.png.png';
+    assets.snowflake.src = 'snowflake.png.png';
     assets.backgroundMusic.loop = true;
 
-    document.addEventListener('click', () => assets.backgroundMusic.play(), { once: true });
-
-    // Game variables
     let player = { x: canvas.width / 2, y: canvas.height - 100, size: 80, angle: 0 };
-    let drones = [], lasers = [], explosions = [], snowflakes = [], bombs = [], score = 0;
+    let drones = [], blackDrones = [], bombs = [], lasers = [], explosions = [], snowflakes = [], score = 0;
+    let isAudioEnabled = false;
     let gameOver = false;
-    let difficulty = 2000;
 
-    // Create snowflakes for background effect
-    function createSnowflakes() {
-        for (let i = 0; i < 50; i++) {
-            snowflakes.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, speed: Math.random() * 2 + 1 });
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        player.x = canvas.width / 2;
+        player.y = canvas.height - 100;
+    });
+
+    document.addEventListener('click', () => {
+        if (!isAudioEnabled) {
+            assets.backgroundMusic.play().catch(error => console.error('Error playing background music:', error));
+            isAudioEnabled = true;
         }
-    }
-    createSnowflakes();
+    });
 
-    // Spawning enemies
     function createDrone() {
-        if (!gameOver) {
-            let isBlack = Math.random() > 0.8;
-            drones.push({
-                x: Math.random() * (canvas.width - 80),
-                y: 0,
-                speed: Math.random() * 2 + 1,
-                black: isBlack
-            });
-        }
+        drones.push({ x: Math.random() * (canvas.width - 80), y: 0, speed: Math.random() * 2 + 1 + score / 100 });
+    }
+
+    function createBlackDrone() {
+        blackDrones.push({ x: Math.random() * (canvas.width - 80), y: 0, speed: Math.random() * 2 + 2 + score / 100 });
     }
 
     function createBomb() {
-        if (!gameOver) {
-            bombs.push({
-                x: Math.random() * (canvas.width - 50),
-                y: 0,
-                speed: Math.random() * 2 + 2
-            });
-        }
+        bombs.push({ x: Math.random() * (canvas.width - 80), y: 0, speed: Math.random() * 2 + 2 + score / 100 });
     }
 
-    function shoot() {
-        if (!gameOver) {
-            // Laser starts from the front of the gun
-            let laserX = player.x + Math.cos(player.angle) * player.size / 2;
-            let laserY = player.y + Math.sin(player.angle) * player.size / 2;
-            
-            lasers.push({ x: laserX, y: laserY, angle: player.angle, speed: 10 });
-
-            assets.laserSound.currentTime = 0;
-            assets.laserSound.play();
-        }
+    function createSnowflake() {
+        snowflakes.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 1 });
     }
 
-    // Controls
-    document.addEventListener('keydown', (e) => {
-        if (e.code === 'Space') shoot();
-        if (e.code === 'ArrowLeft') player.angle -= Math.PI / 18;
-        if (e.code === 'ArrowRight') player.angle += Math.PI / 18;
-    });
+    // Function to check if a point is inside a rectangle
+    function pointInRect(px, py, rect) {
+        return px >= rect.x && px <= rect.x + rect.width && py >= rect.y && py <= rect.y + rect.height;
+    }
 
-    canvas.addEventListener('mousemove', (e) => {
-        if (!gameOver) {
-            const rect = canvas.getBoundingClientRect();
-            player.angle = Math.atan2(e.clientY - rect.top - player.y, e.clientX - rect.left - player.x);
+    // Function to check if a line intersects with a rectangle
+    function lineIntersectsRect(lineStart, lineEnd, rect) {
+        const { x: x1, y: y1 } = lineStart;
+        const { x: x2, y: y2 } = lineEnd;
+        const { x: rx, y: ry, width: rw, height: rh } = rect;
+
+        // Check if the line starts or ends inside the rectangle
+        if (pointInRect(x1, y1, rect) || pointInRect(x2, y2, rect)) {
+            return true;
         }
-    });
 
-    function checkCollisions() {
-        for (let i = lasers.length - 1; i >= 0; i--) {
-            for (let j = drones.length - 1; j >= 0; j--) {
-                if (Math.hypot(lasers[i].x - (drones[j].x + 40), lasers[i].y - (drones[j].y + 40)) < 40) {
-                    explosions.push({ x: drones[j].x, y: drones[j].y, timer: 30 });
-                    drones.splice(j, 1);
-                    lasers.splice(i, 1);
-                    score += drones[j].black ? -20 : 10;
-                    assets.explosionSound.play();
-                    if (drones[j].black) endGame();
-                    break;
-                }
+        // Check if any of the rectangle's edges intersect with the line
+        const edges = [
+            { x1: rx, y1: ry, x2: rx + rw, y2: ry }, // Top edge
+            { x1: rx + rw, y1: ry, x2: rx + rw, y2: ry + rh }, // Right edge
+            { x1: rx, y1: ry + rh, x2: rx + rw, y2: ry + rh }, // Bottom edge
+            { x1: rx, y1: ry, x2: rx, y2: ry + rh } // Left edge
+        ];
+
+        for (let edge of edges) {
+            if (linesIntersect(x1, y1, x2, y2, edge.x1, edge.y1, edge.x2, edge.y2)) {
+                return true;
             }
         }
 
-        for (let i = bombs.length - 1; i >= 0; i--) {
-            if (Math.hypot(bombs[i].x - player.x, bombs[i].y - player.y) < 40) {
-                explosions.push({ x: player.x, y: player.y, timer: 30 });
-                bombs.splice(i, 1);
-                endGame();
-            }
-        }
+        return false;
     }
 
-    function endGame() {
-        gameOver = true;
-        assets.gameOverSound.play();
+    // Function to check if two lines intersect
+    function linesIntersect(x1, y1, x2, y2, x3, y3, x4, y4) {
+        const denominator = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
+        if (denominator === 0) return false; // Lines are parallel
+
+        const ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denominator;
+        const ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denominator;
+
+        return ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1;
     }
 
     function gameLoop() {
         if (gameOver) {
-            context.fillStyle = 'rgba(0, 0, 0, 0.7)';
-            context.fillRect(0, 0, canvas.width, canvas.height);
             context.fillStyle = 'white';
             context.font = '40px Arial';
-            context.fillText('Game Over', canvas.width / 2 - 100, canvas.height / 2);
-            context.fillText('Score: ' + score, canvas.width / 2 - 50, canvas.height / 2 + 40);
+            context.fillText('Game Over!', canvas.width / 2 - 100, canvas.height / 2);
             return;
         }
 
         context.fillStyle = '#001F3F';
         context.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw Snowflakes
-        snowflakes.forEach(flake => {
-            flake.y = (flake.y + flake.speed) % canvas.height;
-            context.drawImage(assets.snowflake, flake.x, flake.y, 10, 10);
-        });
+        drawRotatedImage(assets.player, player.x, player.y, player.angle, player.size);
 
-        // Draw Player (Gun)
-        context.save();
-        context.translate(player.x, player.y);
-        context.rotate(player.angle);
-        context.drawImage(assets.player, -player.size / 2, -player.size / 2, player.size, player.size);
-        context.restore();
-
-        // Draw Laser Beams
-        lasers.forEach(laser => {
-            laser.x += Math.cos(laser.angle) * laser.speed;
-            laser.y += Math.sin(laser.angle) * laser.speed;
-            context.fillStyle = 'red';
-            context.fillRect(laser.x, laser.y, 5, 20);
-        });
-
-        // Draw Drones
         drones.forEach(drone => {
             drone.y += drone.speed;
-            context.drawImage(drone.black ? assets.blackDrone : assets.drone, drone.x, drone.y, 80, 80);
+            context.drawImage(assets.drone, drone.x, drone.y, 80, 80);
         });
 
-        // Draw Bombs
+        blackDrones.forEach(drone => {
+            drone.y += drone.speed;
+            context.drawImage(assets.blackDrone, drone.x, drone.y, 80, 80);
+        });
+
         bombs.forEach(bomb => {
             bomb.y += bomb.speed;
-            context.drawImage(assets.bomb, bomb.x, bomb.y, 50, 50);
+            context.drawImage(assets.bomb, bomb.x, bomb.y, 60, 60);
         });
 
-        // Draw Explosions
-        explosions.forEach((explosion, i) => {
-            context.drawImage(assets.explosion, explosion.x, explosion.y, 80, 80);
-            explosion.timer--;
-            if (explosion.timer <= 0) explosions.splice(i, 1);
+        snowflakes.forEach(snowflake => {
+            snowflake.y += snowflake.speed;
+            context.drawImage(assets.snowflake, snowflake.x, snowflake.y, 20, 20);
         });
 
-        checkCollisions();
+        if (lasers.length > 0) {
+            let beam = lasers[0];
+            // Calculate the position of the tip of the gun
+            const tipX = player.x + Math.cos(player.angle) * (player.size / 2);
+            const tipY = player.y + Math.sin(player.angle) * (player.size / 2);
 
-        if (score >= 50) difficulty = 1000;
+            // Update the laser beam's position based on the gun's angle
+            beam.x = tipX;
+            beam.y = tipY;
+
+            // Draw the laser beam
+            context.strokeStyle = 'red';
+            context.lineWidth = 4;
+            context.beginPath();
+            context.moveTo(tipX, tipY);
+            context.lineTo(tipX + Math.cos(player.angle) * canvas.height, tipY + Math.sin(player.angle) * canvas.height);
+            context.stroke();
+
+            // Check for collisions with drones
+            drones.forEach((drone, i) => {
+                const droneRect = { x: drone.x, y: drone.y, width: 80, height: 80 };
+                const lineStart = { x: tipX, y: tipY };
+                const lineEnd = { x: tipX + Math.cos(player.angle) * canvas.height, y: tipY + Math.sin(player.angle) * canvas.height };
+
+                if (lineIntersectsRect(lineStart, lineEnd, droneRect)) {
+                    explosions.push({ x: drone.x, y: drone.y, timer: 30 });
+                    drones.splice(i, 1);
+                    score += 10;
+                    assets.explosionSound.play();
+                }
+            });
+
+            // Check for collisions with black drones
+            blackDrones.forEach((drone, i) => {
+                const droneRect = { x: drone.x, y: drone.y, width: 80, height: 80 };
+                const lineStart = { x: tipX, y: tipY };
+                const lineEnd = { x: tipX + Math.cos(player.angle) * canvas.height, y: tipY + Math.sin(player.angle) * canvas.height };
+
+                if (lineIntersectsRect(lineStart, lineEnd, droneRect)) {
+                    explosions.push({ x: drone.x, y: drone.y, timer: 30 });
+                    blackDrones.splice(i, 1);
+                    gameOver = true;
+                    assets.explosionSound.play();
+                }
+            });
+
+            // Check for collisions with bombs
+            bombs.forEach((bomb, i) => {
+                const bombRect = { x: bomb.x, y: bomb.y, width: 60, height: 60 };
+                const lineStart = { x: tipX, y: tipY };
+                const lineEnd = { x: tipX + Math.cos(player.angle) * canvas.height, y: tipY + Math.sin(player.angle) * canvas.height };
+
+                if (lineIntersectsRect(lineStart, lineEnd, bombRect)) {
+                    explosions.push({ x: bomb.x, y: bomb.y, timer: 30 });
+                    bombs.splice(i, 1);
+                    gameOver = true;
+                    assets.explosionSound.play();
+                }
+            });
+        }
+
+        explosions.forEach((exp, i) => {
+            context.drawImage(assets.explosion, exp.x, exp.y, 100, 100);
+            if (--exp.timer <= 0) explosions.splice(i, 1);
+        });
+
+        context.fillStyle = 'white';
+        context.font = '20px Arial';
+        context.fillText('Score: ' + score, 20, 30);
 
         requestAnimationFrame(gameLoop);
     }
 
-    setInterval(createDrone, difficulty);
-    setInterval(createBomb, 5000);
+    document.addEventListener('mousemove', (event) => {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = event.clientX - rect.left;
+        const mouseY = event.clientY - rect.top;
+        player.angle = Math.atan2(mouseY - player.y, mouseX - player.x);
+    });
+
+    document.addEventListener('mousedown', () => {
+        // Calculate the position of the tip of the gun
+        const tipX = player.x + Math.cos(player.angle) * (player.size / 2);
+        const tipY = player.y + Math.sin(player.angle) * (player.size / 2);
+        lasers = [{ x: tipX, y: tipY }];
+        assets.laserSound.play();
+    });
+
+    document.addEventListener('mouseup', () => {
+        lasers = [];
+    });
+
+    setInterval(createDrone, 2000);
+    setInterval(createSnowflake, 500); // Create snowflakes every 500ms
+    setInterval(() => {
+        if (score > 50) createBlackDrone();
+        if (score > 100) createBomb();
+    }, 3000);
+
     gameLoop();
 };
