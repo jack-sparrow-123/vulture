@@ -13,7 +13,7 @@ window.onload = function () {
         laserSound: new Audio('attack-laser-128280.mp3'),
         explosionSound: new Audio('small-explosion-129477.mp3'),
         gameOverSound: new Audio('game-over.mp3'),
-        backgroundMusic: new Audio('lonely-winter-breeze-36867.mp3')
+        backgroundMusic: new Audio('background-music.mp3')
     };
 
     // Set up paths for images and MP3 files
@@ -88,6 +88,7 @@ window.onload = function () {
         if (e.code === 'ArrowLeft') player.angle -= Math.PI / 18;
         if (e.code === 'ArrowRight') player.angle += Math.PI / 18;
         if (e.code === 'KeyM') {
+            // Switch between 'beam' and 'drop' (bomb)
             gunType = gunType === 'beam' ? 'drop' : 'beam';
             console.log('Gun type switched to:', gunType); // Debugging
         }
@@ -199,18 +200,4 @@ window.onload = function () {
 
         explosions.forEach((explosion, i) => {
             if (explosion.timer > 0) {
-                context.drawImage(assets.explosion, explosion.x - 40, explosion.y - 40, 80, 80);
-                explosion.timer--;
-            } else {
-                explosions.splice(i, 1);
-            }
-        });
-
-        checkCollisions();
-        requestAnimationFrame(gameLoop);
-    }
-
-    setInterval(createDrone, 2000);
-    setInterval(createBomb, 5000);
-    gameLoop();
-};
+                context.drawImage(assets.explosion, explosion.x - 
