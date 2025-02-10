@@ -33,7 +33,7 @@ window.onload = function () {
 
     let player = { x: canvas.width / 2, y: canvas.height - 100, size: 80, angle: 0 };
     let drones = [], blackDrones = [], bombs = [], lasers = [], explosions = [], snowflakes = [], score = 0;
-    let isAudioEnabled = false, gameOver = false, lives = 3;
+    let isAudioEnabled = false, gameOver = false;
 
     window.addEventListener('resize', () => {
         canvas.width = window.innerWidth;
@@ -70,7 +70,6 @@ window.onload = function () {
     }
 
     function checkCollision(laser, target) {
-        // Check if the laser endpoint is within the target's bounding box
         return (
             laser.x > target.x &&
             laser.x < target.x + 80 &&
@@ -109,7 +108,7 @@ window.onload = function () {
             context.beginPath();
             context.arc(snowflake.x, snowflake.y, 2, 0, Math.PI * 2);
             context.fill();
-            if (snowflake.y > canvas.height) snowflakes.splice(index, 1); // Remove snowflake if it falls off screen
+            if (snowflake.y > canvas.height) snowflakes.splice(index, 1);
         });
 
         drawRotatedImage(assets.player, player.x, player.y, player.angle, player.size);
@@ -141,8 +140,8 @@ window.onload = function () {
             drones = drones.filter((drone, index) => {
                 if (checkCollision(laser, drone)) {
                     score += 10;
-                    explosions.push({ x: drone.x, y: drone.y, frame: 0 }); // Trigger explosion
-                    return false; // Remove the drone
+                    explosions.push({ x: drone.x, y: drone.y, frame: 0 });
+                    return false;
                 }
                 return true;
             });
@@ -150,22 +149,19 @@ window.onload = function () {
             // Check collision with black drones
             blackDrones.forEach((drone, index) => {
                 if (checkCollision(laser, drone)) {
-                    lives--;
-                    explosions.push({ x: drone.x, y: drone.y, frame: 0 }); // Trigger explosion
-                    blackDrones.splice(index, 1); // Remove the black drone
-                    if (lives <= 0) {
-                        gameOver = true;
-                        assets.gameOverSound.play();
-                    }
+                    gameOver = true;
+                    explosions.push({ x: drone.x, y: drone.y, frame: 0 });
+                    blackDrones.splice(index, 1);
+                    assets.gameOverSound.play();
                 }
             });
 
             // Check collision with bombs
             bombs.forEach((bomb, index) => {
                 if (checkCollision(laser, bomb)) {
-                    score -= 20;
-                    explosions.push({ x: bomb.x, y: bomb.y, frame: 0 }); // Trigger explosion
-                    bombs.splice(index, 1); // Remove the bomb
+                    gameOver = true;
+                    explosions.push({ x: bomb.x, y: bomb.y, frame: 0 });
+                    bombs.splice(index, 1);
                     assets.explosionSound.play();
                 }
             });
@@ -176,15 +172,14 @@ window.onload = function () {
             context.drawImage(assets.explosion, explosion.x, explosion.y, 80, 80);
             explosion.frame++;
             if (explosion.frame > 10) {
-                explosions.splice(index, 1); // Remove the explosion after 10 frames
+                explosions.splice(index, 1);
             }
         });
 
-        // Draw score and lives
+        // Draw score
         context.fillStyle = 'white';
         context.font = '20px Arial';
         context.fillText('Score: ' + score, 20, 30);
-        context.fillText('Lives: ' + lives, 20, 60);
 
         // Spawn new enemies based on score
         if (score >= 50) {
@@ -214,10 +209,26 @@ window.onload = function () {
         lasers = [];
     });
 
+    // Keyboard controls
+    document.addEventListener('keydown', (event) => {
+        const speed = 10;
+        if (event.key === 'ArrowLeft') {
+            player.x -= speed;
+        } else if (event.key === 'ArrowRight') {
+            player.x += speed;
+        } else if (event.key === ' ') { // Space bar to shoot
+            const tipX = player.x + Math.cos(player.angle) * (player.size / 2);
+            const tipY = player.y + Math.sin(player.angle) * (player.size / 2);
+            lasers.push({ x: tipX, y: tipY, angle: player.angle });
+            assets.laserSound.currentTime = 0;
+            assets.laserSound.play();
+        }
+    });
+
     setInterval(createDrone, 2000);
     setInterval(() => { if (score > 50) createBlackDrone(); }, 3000);
     setInterval(() => { if (score > 100) createBomb(); }, 5000);
-    setInterval(createSnowflake, 200); // Add snowflakes continuously
+    setInterval(createSnowflake, 200);
 
     gameLoop();
 };
