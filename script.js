@@ -244,17 +244,46 @@ window.onload = function () {
 
 
 
- function pauseGame() {
-    // Add your code to pause the game
-    console.log("Game Paused");
+
+
+// Settings Variables
+let isPaused = false;
+let isSoundOn = true;
+
+// Pause Game Function
+function togglePause() {
+    isPaused = !isPaused;
+    if (isPaused) {
+        game.scene.pause("GameScene"); // Pause the game
+    } else {
+        game.scene.resume("GameScene"); // Resume the game
+    }
 }
 
+// Restart Game Function
 function restartGame() {
-    // Add your code to restart the game
-    console.log("Game Restarted");
+    game.scene.restart("GameScene"); // Reload the game scene
 }
 
+// Toggle Sound Function
 function toggleSound() {
-    // Add your code to toggle sound on/off
-    console.log("Sound Toggled");
+    isSoundOn = !isSoundOn;
+    game.sound.mute = !isSoundOn; // Mute or unmute all sounds
 }
+
+// Create Settings Menu UI (Using Buttons)
+let settingsButton = document.createElement("button");
+settingsButton.innerHTML = "⚙️ Settings";
+settingsButton.onclick = openSettings;
+document.body.appendChild(settingsButton);
+
+function openSettings() {
+    let menu = document.createElement("div");
+    menu.innerHTML = `
+        <button onclick="togglePause()"> ${isPaused ? "Resume" : "Pause"} </button>
+        <button onclick="restartGame()"> Restart </button>
+        <button onclick="toggleSound()"> Sound: ${isSoundOn ? "ON" : "OFF"} </button>
+    `;
+    document.body.appendChild(menu);
+}
+
