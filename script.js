@@ -94,45 +94,39 @@ window.onload = function () {
         // Check collisions with drones, black drones, and bombs
         [drones, blackDrones, bombs].forEach((arr, ai) => {
             arr.forEach((obj, oi) => {
-                // Check if the object is within the laser's path
-                const dist = distanceToLine(player.x, player.y, laserEndX, laserEndY, obj.x, obj.y);
-                if (dist < 30) { // Collision radius
+                // Check if the object intersects with the laser beam
+                if (lineCircleIntersection(player.x, player.y, laserEndX, laserEndY, obj.x, obj.y, 25)) {
                     explosions.push({ x: obj.x, y: obj.y, timer: 30 });
                     arr.splice(oi, 1);
-                    if (ai === 0) score += 10;
-                    else gameOver = true;
+                    if (ai === 0) score += 10; // Score for drones
+                    else {
+                        gameOver = true; // Game over for black drones and bombs
+                        assets.gameOverSound.play();
+                    }
                     assets.explosionSound.play();
                 }
             });
         });
     }
 
-    function distanceToLine(x1, y1, x2, y2, px, py) {
-        const A = px - x1;
-        const B = py - y1;
-        const C = x2 - x1;
-        const D = y2 - y1;
+    function lineCircleIntersection(x1, y1, x2, y2, cx, cy, r) {
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const fx = x1 - cx;
+        const fy = y1 - cy;
 
-        const dot = A * C + B * D;
-        const lenSq = C * C + D * D;
-        const param = dot / lenSq;
+        const a = dx * dx + dy * dy;
+        const b = 2 * (fx * dx + fy * dy);
+        const c = fx * fx + fy * fy - r * r;
 
-        let xx, yy;
+        const discriminant = b * b - 4 * a * c;
 
-        if (param < 0) {
-            xx = x1;
-            yy = y1;
-        } else if (param > 1) {
-            xx = x2;
-            yy = y2;
-        } else {
-            xx = x1 + param * C;
-            yy = y1 + param * D;
-        }
+        if (discriminant < 0) return false; // No intersection
 
-        const dx = px - xx;
-        const dy = py - yy;
-        return Math.sqrt(dx * dx + dy * dy);
+        const t1 = (-b - Math.sqrt(discriminant)) / (2 * a);
+        const t2 = (-b + Math.sqrt(discriminant)) / (2 * a);
+
+        return (t1 >= 0 && t1 <= 1) || (t2 >= 0 && t2 <= 1);
     }
 
     function spawnObjects() {
@@ -189,9 +183,15 @@ window.onload = function () {
         context.fillStyle = 'white';
         context.font = '20px Arial';
         context.fillText(`Score: ${score}`, 20, 30);
-    }
 
-     
+        // Draw "Game Over" message
+        if (gameOver) {
+            context.fillStyle = 'red';
+            context.font = '60px Arial';
+            context.textAlign = 'center';
+            context.fillText('Game Over', canvas.width / 2, canvas.height / 2);
+        }
+    }
 
     function gameLoop() {
         if (gameOver) {
@@ -199,6 +199,7 @@ window.onload = function () {
                 assets.gameOverSound.play();
                 gameOverSoundPlayed = true;
             }
+            drawGameObjects();
             return;
         }
         drawGameObjects();
