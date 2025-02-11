@@ -2,17 +2,15 @@ window.onload = function () {
     console.log("Waiting for images to load...");
 };
 
+function drawRotatedImage(img, x, y, angle, size) {
+    context.save();
+    context.translate(x, y);
+    context.rotate(angle);
+    context.drawImage(img, -size / 2, -size / 2, size, size);
+    context.restore();
+}
 
-
-    function drawRotatedImage(img, x, y, angle, size) {
-        context.save();
-        context.translate(x, y);
-        context.rotate(angle);
-        context.drawImage(img, -size / 2, -size / 2, size, size);
-        context.restore();
-    }
-
-   const assets = {
+const assets = {
     player: new Image(),
     drone: new Image(),
     blackDrone: new Image(),
@@ -29,7 +27,7 @@ window.onload = function () {
 const imagePaths = {
     player: 'gun2.png.png',
     drone: 'drone2.png.png',
-    blackDrone: 'blackdrone.png',
+    blackDrone: 'blackdrone.png.png',
     bomb: 'bomb.png.png',
     explosion: 'explosion.png.png',
     snowflake: 'snowflake.png.png'
@@ -58,84 +56,87 @@ function startGame() {
     assets.backgroundMusic.loop = true;
     gameLoop();
 }
- 
-   
-    let player = { x: canvas.width / 2, y: canvas.height - 100, size: 80, angle: 0 };
-    let drones = [], blackDrones = [], bombs = [], lasers = [], explosions = [], snowflakes = [], score = 0;
-    let isAudioEnabled = false;
-    let gameOver = false;
-    let gameOverSoundPlayed = false; // Ensure the game over sound plays only once
 
-    // Event listeners for gun movement and shooting
-    canvas.addEventListener('mousemove', (e) => {
-        if (!gameOver) {
-            const rect = canvas.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const mouseY = e.clientY - rect.top;
-            player.angle = Math.atan2(mouseY - player.y, mouseX - player.x);
+let player = { x: canvas.width / 2, y: canvas.height - 100, size: 80, angle: 0 };
+let drones = [], blackDrones = [], bombs = [], lasers = [], explosions = [], snowflakes = [], score = 0;
+let isAudioEnabled = false;
+let gameOver = false;
+let gameOverSoundPlayed = false; // Ensure the game over sound plays only once
+
+// Event listeners for gun movement and shooting
+canvas.addEventListener('mousemove', (e) => {
+    if (!gameOver) {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        player.angle = Math.atan2(mouseY - player.y, mouseX - player.x);
+    }
+});
+
+canvas.addEventListener('touchmove', (e) => {
+    if (!gameOver) {
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        const touchX = touch.clientX - rect.left;
+        const touchY = touch.clientY - rect.top;
+        player.angle = Math.atan2(touchY - player.y, touchX - player.x);
+        e.preventDefault(); // Prevent scrolling
+    }
+});
+
+document.addEventListener('keydown', (e) => {
+    if (!gameOver) {
+        const speed = 5;
+        if (e.key === 'ArrowLeft') {
+            player.x -= speed;
+        } else if (e.key === 'ArrowRight') {
+            player.x += speed;
+        } else if (e.key === 'ArrowUp') {
+            player.y -= speed;
+        } else if (e.key === 'ArrowDown') {
+            player.y += speed;
         }
-    });
+        // Keep player within canvas bounds
+        player.x = Math.max(0, Math.min(canvas.width, player.x));
+        player.y = Math.max(0, Math.min(canvas.height, player.y));
+    }
+});
 
-    canvas.addEventListener('touchmove', (e) => {
-        if (!gameOver) {
-            const touch = e.touches[0];
-            const rect = canvas.getBoundingClientRect();
-            const touchX = touch.clientX - rect.left;
-            const touchY = touch.clientY - rect.top;
-            player.angle = Math.atan2(touchY - player.y, touchX - player.x);
-            e.preventDefault(); // Prevent scrolling
-        }
-    });
+canvas.addEventListener('click', () => {
+    if (!gameOver) {
+        shootLaser();
+    }
+});
 
-    document.addEventListener('keydown', (e) => {
-        if (!gameOver) {
-            const speed = 5;
-            if (e.key === 'ArrowLeft') {
-                player.x -= speed;
-            } else if (e.key === 'ArrowRight') {
-                player.x += speed;
-            } else if (e.key === 'ArrowUp') {
-                player.y -= speed;
-            } else if (e.key === 'ArrowDown') {
-                player.y += speed;
-            }
-            // Keep player within canvas bounds
-            player.x = Math.max(0, Math.min(canvas.width, player.x));
-            player.y = Math.max(0, Math.min(canvas.height, player.y));
-        }
-    });
+canvas.addEventListener('touchstart', () => {
+    if (!gameOver) {
+        shootLaser();
+    }
+});
 
-    canvas.addEventListener('click', () => {
-        if (!gameOver) {
-            shootLaser();
-        }
-    });
+function shootLaser() {
+    if (!gameOver) {
+        lasers.push({ x: player.x, y: player.y, angle: player.angle });
+        assets.laserSound.play();
+    }
+}
 
-    canvas.addEventListener('touchstart', () => {
-        if (!gameOver) {
-            shootLaser();
-        }
-    });
-
-
-
-
-    function checkLaserCollisions() {
+function checkLaserCollisions() {
     if (lasers.length > 0) {
         let beam = lasers[0];
 
         // Laser starts at the gun tip
         const startX = player.x + Math.cos(player.angle) * (player.size / 2);
         const startY = player.y + Math.sin(player.angle) * (player.size / 2);
-        
+
         // Laser extends to the edge of the canvas
         const endX = startX + Math.cos(player.angle) * canvas.height;
         const endY = startY + Math.sin(player.angle) * canvas.height;
 
         // Function to check if a point is on the laser path
         function isHit(obj, size) {
-            const dist = Math.abs((endY - startY) * obj.x - (endX - startX) * obj.y + endX * startY - endY * startX) / 
-                         Math.sqrt((endY - startY) ** 2 + (endX - startX) ** 2);
+            const dist = Math.abs((endY - startY) * obj.x - (endX - startX) * obj.y + endX * startY - endY * startX) /
+                Math.sqrt((endY - startY) ** 2 + (endX - startX) ** 2);
             return dist < size / 2;
         }
 
@@ -171,118 +172,37 @@ function startGame() {
     }
 }
 
+window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    player.x = canvas.width / 2;
+    player.y = canvas.height - 100;
+});
 
-    window.addEventListener('resize', () => {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        player.x = canvas.width / 2;
-        player.y = canvas.height - 100;
-    });
-
-    document.addEventListener('click', () => {
-        if (!isAudioEnabled) {
-            assets.backgroundMusic.play().catch(error => console.error('Error playing background music:', error));
-            isAudioEnabled = true;
-        }
-    });
-
-    function createDrone() {
-        drones.push({ x: Math.random() * (canvas.width - 80), y: 0, speed: Math.random() * 2 + 1 + score / 100 });
+document.addEventListener('click', () => {
+    if (!isAudioEnabled) {
+        assets.backgroundMusic.play().catch(error => console.error('Error playing background music:', error));
+        isAudioEnabled = true;
     }
+});
 
-    function createBlackDrone() {
-        blackDrones.push({ x: Math.random() * (canvas.width - 80), y: 0, speed: Math.random() * 2 + 2 + score / 100 });
-    }
+function createDrone() {
+    drones.push({ x: Math.random() * (canvas.width - 80), y: 0, speed: Math.random() * 2 + 1 + score / 100 });
+}
 
-    function createBomb() {
-        bombs.push({ x: Math.random() * (canvas.width - 80), y: 0, speed: Math.random() * 2 + 2 + score / 100 });
-    }
+function createBlackDrone() {
+    blackDrones.push({ x: Math.random() * (canvas.width - 80), y: 0, speed: Math.random() * 2 + 2 + score / 100 });
+}
 
-    function createSnowflake() {
-        snowflakes.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 1 });
-    }
+function createBomb() {
+    bombs.push({ x: Math.random() * (canvas.width - 80), y: 0, speed: Math.random() * 2 + 2 + score / 100 });
+}
 
-    function gameLoop() {
-        if (gameOver) {
-            if (!gameOverSoundPlayed) {
-                assets.gameOverSound.play(); // Play game over sound
-                gameOverSoundPlayed = true; // Ensure it plays only once
-            }
-            context.fillStyle = 'red';
-            context.font = '40px Arial';
-            context.fillText('Game Over!', canvas.width / 2 - 100, canvas.height / 2);
-            return;
-        }
+function createSnowflake() {
+    snowflakes.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 1 });
+}
 
-        context.fillStyle = '#001F3F';
-        context.fillRect(0, 0, canvas.width, canvas.height);
-
-        drawRotatedImage(assets.player, player.x, player.y, player.angle, player.size);
-
-        drones.forEach(drone => {
-            drone.y += drone.speed;
-            context.drawImage(assets.drone, drone.x, drone.y, 80, 80);
-        });
-
-        blackDrones.forEach(drone => {
-            drone.y += drone.speed;
-            context.drawImage(assets.blackDrone, drone.x, drone.y, 80, 80);
-        });
-
-        bombs.forEach(bomb => {
-            bomb.y += bomb.speed;
-            context.drawImage(assets.bomb, bomb.x, bomb.y, 60, 60);
-        });
-
-        snowflakes.forEach(snowflake => {
-            snowflake.y += snowflake.speed;
-            context.drawImage(assets.snowflake, snowflake.x, snowflake.y, 20, 20);
-        });
-
-        if (lasers.length > 0) {
-            let beam = lasers[0];
-            const tipX = player.x + Math.cos(player.angle) * (player.size / 2);
-            const tipY = player.y + Math.sin(player.angle) * (player.size / 2);
-
-            beam.x = tipX;
-            beam.y = tipY;
-
-            context.strokeStyle = 'red';
-            context.lineWidth = 6;
-            context.beginPath();
-            context.moveTo(tipX, tipY);
-            context.lineTo(tipX + Math.cos(player.angle) * canvas.height, tipY + Math.sin(player.angle) * canvas.height);
-            context.stroke();
-
-            drones.forEach((drone, i) => {
-                if (tipX > drone.x && tipX < drone.x + 80 && tipY > drone.y && tipY < drone.y + 80) {
-                    explosions.push({ x: drone.x, y: drone.y, timer: 30 });
-                    drones.splice(i, 1);
-                    score += 10;
-                    assets.explosionSound.play();
-                }
-            });
-
-            blackDrones.forEach((drone, i) => {
-                if (tipX > drone.x && tipX < drone.x + 80 && tipY > drone.y && tipY < drone.y + 80) {
-                    explosions.push({ x: drone.x, y: drone.y, timer: 30 });
-                    blackDrones.splice(i, 1);
-                    gameOver = true;
-                    assets.explosionSound.play();
-                }
-            });
-
-            bombs.forEach((bomb, i) => {
-                if (tipX > bomb.x && tipX < bomb.x + 60 && tipY > bomb.y && tipY < bomb.y + 60) {
-                    explosions.push({ x: bomb.x, y: bomb.y, timer: 30 });
-                    bombs.splice(i, 1);
-                    gameOver = true;
-                    assets.explosionSound.play();
-                }
-            });
-        }
-
-      function drawExplosions() {
+function drawExplosions() {
     explosions.forEach((exp, i) => {
         context.drawImage(assets.explosion, exp.x, exp.y, 100, 100);
         exp.timer--;
@@ -290,13 +210,77 @@ function startGame() {
     });
 }
 
-
-        context.fillStyle = 'white';
-        context.font = '20px Arial';
-        context.fillText('Score: ' + score, 20, 30);
-
-        requestAnimationFrame(gameLoop);
+function gameLoop() {
+    if (gameOver) {
+        if (!gameOverSoundPlayed) {
+            assets.gameOverSound.play(); // Play game over sound
+            gameOverSoundPlayed = true; // Ensure it plays only once
+        }
+        context.fillStyle = 'red';
+        context.font = '40px Arial';
+        context.fillText('Game Over!', canvas.width / 2 - 100, canvas.height / 2);
+        return;
     }
 
-    gameLoop();
-};
+    context.fillStyle = '#001F3F';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    drawRotatedImage(assets.player, player.x, player.y, player.angle, player.size);
+
+    drones.forEach(drone => {
+        drone.y += drone.speed;
+        context.drawImage(assets.drone, drone.x, drone.y, 80, 80);
+    });
+
+    blackDrones.forEach(drone => {
+        drone.y += drone.speed;
+        context.drawImage(assets.blackDrone, drone.x, drone.y, 80, 80);
+    });
+
+    bombs.forEach(bomb => {
+        bomb.y += bomb.speed;
+        context.drawImage(assets.bomb, bomb.x, bomb.y, 60, 60);
+    });
+
+    snowflakes.forEach(snowflake => {
+        snowflake.y += snowflake.speed;
+        context.drawImage(assets.snowflake, snowflake.x, snowflake.y, 20, 20);
+        if (snowflake.y > canvas.height) {
+            snowflake.y = 0; // Reset snowflake to the top
+        }
+    });
+
+    if (lasers.length > 0) {
+        let beam = lasers[0];
+        const tipX = player.x + Math.cos(player.angle) * (player.size / 2);
+        const tipY = player.y + Math.sin(player.angle) * (player.size / 2);
+
+        beam.x = tipX;
+        beam.y = tipY;
+
+        context.strokeStyle = 'red';
+        context.lineWidth = 6;
+        context.beginPath();
+        context.moveTo(tipX, tipY);
+        context.lineTo(tipX + Math.cos(player.angle) * canvas.height, tipY + Math.sin(player.angle) * canvas.height);
+        context.stroke();
+
+        checkLaserCollisions();
+    }
+
+    drawExplosions();
+
+    context.fillStyle = 'white';
+    context.font = '20px Arial';
+    context.fillText('Score: ' + score, 20, 30);
+
+    requestAnimationFrame(gameLoop);
+}
+
+// Start spawning objects
+setInterval(createDrone, 1000);
+setInterval(createBlackDrone, 3000);
+setInterval(createBomb, 5000);
+setInterval(createSnowflake, 500);
+
+gameLoop();
