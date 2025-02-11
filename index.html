@@ -26,6 +26,29 @@
         .back-button:hover {
             background-color: #0056b3;
         }
+
+
+           .settings-menu {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+        button {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .pause { background: #ffcc00; }
+        .restart { background: #4caf50; color: white; }
+        .sound { background: #2196f3; color: white; }
+
         
 
         
@@ -65,7 +88,37 @@
             window.location.href = 'https://jack-sparrow-123.github.io/homepage/';
         }
 
+            let isPaused = false;
+        let isSoundOn = true;
 
+        function togglePause() {
+            isPaused = !isPaused;
+            alert(isPaused ? "Game Paused" : "Game Resumed");
+        }
+
+        function restartGame() {
+            alert("Game Restarted");
+            location.reload();
+        }
+
+        function toggleSound() {
+            isSoundOn = !isSoundOn;
+            document.querySelector(".sound").innerText = "Sound: " + (isSoundOn ? "ON" : "OFF");
+        }
     </script>
+
+    <div class="settings-menu">
+        <h2>Game Settings</h2>
+        <button class="pause" onclick="togglePause()">Pause</button>
+        <button class="restart" onclick="restartGame()">Restart</button>
+        <button class="sound" onclick="toggleSound()">Sound: ON</button>
+    </div>
+
+    
+       
+    
+
 </body>
 </html>
+
+
