@@ -8,10 +8,12 @@
     
 
 
-        .back-button {
-    position: absolute; 
-    top: 10px;
-    left: 10px; 
+    
+.back-button {
+    position: absolute;
+    top: 50px; 
+    left: 50%; 
+    transform: translateX(-50%); 
     padding: 10px;
     font-size: 16px;
     color: white;
@@ -19,7 +21,7 @@
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    z-index: 1000; 
+    z-index: 1000;
 }
 
       
@@ -92,26 +94,26 @@
         }
 
 
+let isPaused = false;
+let isSoundOn = true;
 
-         let isPaused = false;
-        let isSoundOn = true;
+function togglePause() {
+    isPaused = !isPaused;
+    document.querySelector(".pause").innerText = isPaused ? "Resume" : "Pause";
+    // Removed alert
+}
 
-        function togglePause() {
-            isPaused = !isPaused;
-            document.querySelector(".pause").innerText = isPaused ? "Resume" : "Pause";
-            alert(isPaused ? "Game Paused" : "Game Resumed");
-        }
+function restartGame() {
+    // Removed alert
+    location.reload();
+}
 
-        function restartGame() {
-            alert("Game Restarted");
-            location.reload();
-        }
-
-        function toggleSound() {
-            isSoundOn = !isSoundOn;
-            document.querySelector(".sound").innerText = isSoundOn ? "Sound: ON" : "Sound: OFF";
-            alert(isSoundOn ? "Sound Enabled" : "Sound Muted");
-        }
+function toggleSound() {
+    isSoundOn = !isSoundOn;
+    document.querySelector(".sound").innerText = isSoundOn ? "Sound: ON" : "Sound: OFF";
+    // Removed alert
+}
+       
     </script>
 
     <div class="settings-menu">
