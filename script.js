@@ -1,3 +1,12 @@
+// Initialize the canvas and context
+const canvas = document.createElement('canvas');
+document.body.appendChild(canvas);
+const context = canvas.getContext('2d');
+
+// Set canvas dimensions
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
 window.onload = function () {
     console.log("Waiting for images to load...");
 };
@@ -275,7 +284,7 @@ function gameLoop() {
     context.fillText('Score: ' + score, 20, 30);
 
     requestAnimationFrame(gameLoop);
-
+}
 
 // Start spawning objects
 setInterval(createDrone, 1000);
