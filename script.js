@@ -35,7 +35,7 @@ const imagePaths = {
     player: 'gun2.png.png',
     drone: 'drone2.png.png',
     blackDrone: 'blackdrone.png.png',
-    bomb: 'bomb.png',
+    bomb: 'bomb.png.png',
     explosion: 'explosion.png.png',
     snowflake: 'snowflake.png.png'
 };
