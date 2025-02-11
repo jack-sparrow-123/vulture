@@ -191,6 +191,13 @@ window.onload = function () {
         context.fillText(`Score: ${score}`, 20, 30);
     }
 
+          if (gameOver) {
+            context.fillStyle = 'red';
+            context.font = '50px Arial';
+            context.fillText('GAME OVER', canvas.width / 2 - 150, canvas.height / 2);
+        }
+    }
+
     function gameLoop() {
         if (gameOver) {
             if (!gameOverSoundPlayed) {
