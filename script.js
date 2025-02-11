@@ -11,7 +11,7 @@ window.onload = function () {
         bomb: new Image(),
         explosion: new Image(),
         snowflake: new Image(),
-        laserSound: new Audio('laser-shot-.mp3'),
+        laserSound: new Audio('lase-shot-.mp3'),
         explosionSound: new Audio('small-explosion-129477.mp3'),
         backgroundMusic: new Audio('lonely-winter-breeze-36867.mp3'),
         gameOverSound: new Audio('gameover.mp3')
@@ -89,7 +89,6 @@ window.onload = function () {
             laserActive = true;
             assets.laserSound.currentTime = 0; // Reset sound to start
             assets.laserSound.play();
-            checkLaserCollisions(); // Immediate collision check
         }
     }
 
@@ -106,11 +105,11 @@ window.onload = function () {
 
         // Check collisions with drones, black drones, and bombs
         [drones, blackDrones, bombs].forEach((arr, ai) => {
-            arr.forEach((obj, oi) => {
-                // Check if the object intersects with the laser beam
+            for (let i = arr.length - 1; i >= 0; i--) {
+                const obj = arr[i];
                 if (lineCircleIntersection(player.x, player.y, laserEndX, laserEndY, obj.x, obj.y, 25)) {
                     explosions.push({ x: obj.x, y: obj.y, timer: 30 });
-                    arr.splice(oi, 1);
+                    arr.splice(i, 1);
                     if (ai === 0) score += 10; // Score for drones
                     else {
                         gameOver = true; // Game over for black drones and bombs
@@ -118,7 +117,7 @@ window.onload = function () {
                     }
                     assets.explosionSound.play();
                 }
-            });
+            }
         });
     }
 
@@ -187,10 +186,11 @@ window.onload = function () {
         }
 
         // Draw explosions
-        explosions.forEach((explosion, index) => {
+        for (let i = explosions.length - 1; i >= 0; i--) {
+            const explosion = explosions[i];
             context.drawImage(assets.explosion, explosion.x - 40, explosion.y - 40, 80, 80);
-            if (--explosion.timer <= 0) explosions.splice(index, 1);
-        });
+            if (--explosion.timer <= 0) explosions.splice(i, 1);
+        }
 
         // Draw score
         context.fillStyle = 'white';
