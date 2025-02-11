@@ -275,7 +275,7 @@ function gameLoop() {
     context.fillText('Score: ' + score, 20, 30);
 
     requestAnimationFrame(gameLoop);
-}
+
 
 // Start spawning objects
 setInterval(createDrone, 1000);
