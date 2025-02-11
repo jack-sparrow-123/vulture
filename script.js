@@ -84,7 +84,7 @@ window.onload = function () {
 
     function shootLaser() {
         if (gameOver || laserFired) return;
-        lasers.push({ x: player.x, y: player.y, angle: player.angle });
+        lasers.push({ x: player.x, y: player.y, angle: player.angle, length: canvas.width });
         assets.laserSound.play();
         laserFired = true;
         setTimeout(() => laserFired = false, 300);
@@ -144,7 +144,7 @@ window.onload = function () {
             context.lineWidth = 4;
             context.beginPath();
             context.moveTo(laser.x, laser.y);
-            context.lineTo(laser.x + Math.cos(laser.angle) * 1000, laser.y + Math.sin(laser.angle) * 1000);
+            context.lineTo(laser.x + Math.cos(laser.angle) * laser.length, laser.y + Math.sin(laser.angle) * laser.length);
             context.stroke();
             if (laser.x < 0 || laser.x > canvas.width || laser.y < 0 || laser.y > canvas.height) {
                 lasers.splice(index, 1);
@@ -159,6 +159,12 @@ window.onload = function () {
         context.fillStyle = 'white';
         context.font = '20px Arial';
         context.fillText(`Score: ${score}`, 20, 30);
+
+        if (gameOver) {
+            context.fillStyle = 'red';
+            context.font = '50px Arial';
+            context.fillText('GAME OVER', canvas.width / 2 - 150, canvas.height / 2);
+        }
     }
 
     function gameLoop() {
