@@ -37,6 +37,64 @@ window.onload = function () {
     let isAudioEnabled = false;
     let gameOver = false;
 
+    // Event listeners for gun movement and shooting
+    canvas.addEventListener('mousemove', (e) => {
+        if (!gameOver) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            player.angle = Math.atan2(mouseY - player.y, mouseX - player.x);
+        }
+    });
+
+    canvas.addEventListener('touchmove', (e) => {
+        if (!gameOver) {
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const touchX = touch.clientX - rect.left;
+            const touchY = touch.clientY - rect.top;
+            player.angle = Math.atan2(touchY - player.y, touchX - player.x);
+            e.preventDefault(); // Prevent scrolling
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (!gameOver) {
+            const speed = 5;
+            if (e.key === 'ArrowLeft') {
+                player.x -= speed;
+            } else if (e.key === 'ArrowRight') {
+                player.x += speed;
+            } else if (e.key === 'ArrowUp') {
+                player.y -= speed;
+            } else if (e.key === 'ArrowDown') {
+                player.y += speed;
+            }
+            // Keep player within canvas bounds
+            player.x = Math.max(0, Math.min(canvas.width, player.x));
+            player.y = Math.max(0, Math.min(canvas.height, player.y));
+        }
+    });
+
+    canvas.addEventListener('click', () => {
+        if (!gameOver) {
+            shootLaser();
+        }
+    });
+
+    canvas.addEventListener('touchstart', () => {
+        if (!gameOver) {
+            shootLaser();
+        }
+    });
+
+    function shootLaser() {
+        if (lasers.length === 0) { // Only allow one laser at a time
+            lasers.push({ x: player.x, y: player.y });
+            assets.laserSound.play();
+        }
+    }
+
     window.addEventListener('resize', () => {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
