@@ -27,24 +27,27 @@
             background-color: #0056b3;
         }
 
-
-           .settings-menu {
+.settings-menu {
             background: white;
-            padding: 20px;
+            padding: 15px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
             text-align: center;
         }
-        button {
+      .settings-menu   button {
             display: block;
-            width: 100%;
-            margin: 10px 0;
-            padding: 10px;
+            width: 150px;
+            margin: 8px auto;
+            padding: 8px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
         }
+        .pause { background: #ffcc00; }
+        .restart { background: #4caf50; color: white; }
+        .sound { background: #2196f3; color: white; }
+         
         .pause { background: #ffcc00; }
         .restart { background: #4caf50; color: white; }
         .sound { background: #2196f3; color: white; }
@@ -88,11 +91,14 @@
             window.location.href = 'https://jack-sparrow-123.github.io/homepage/';
         }
 
-            let isPaused = false;
+
+
+         let isPaused = false;
         let isSoundOn = true;
 
         function togglePause() {
             isPaused = !isPaused;
+            document.querySelector(".pause").innerText = isPaused ? "Resume" : "Pause";
             alert(isPaused ? "Game Paused" : "Game Resumed");
         }
 
@@ -103,7 +109,8 @@
 
         function toggleSound() {
             isSoundOn = !isSoundOn;
-            document.querySelector(".sound").innerText = "Sound: " + (isSoundOn ? "ON" : "OFF");
+            document.querySelector(".sound").innerText = isSoundOn ? "Sound: ON" : "Sound: OFF";
+            alert(isSoundOn ? "Sound Enabled" : "Sound Muted");
         }
     </script>
 
