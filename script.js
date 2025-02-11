@@ -28,12 +28,13 @@ window.onload = function () {
 
     let loadedImages = 0;
     let totalImages = Object.keys(imagePaths).length;
-    let player = { x: canvas.width / 2, y: canvas.height / 2, size: 80, angle: 0 };
+    let player = { x: canvas.width / 2, y: canvas.height / 2, size: 60, angle: 0 };
     let drones = [], blackDrones = [], bombs = [], lasers = [], explosions = [], snowflakes = [], score = 0;
     let isAudioEnabled = false;
     let gameOver = false;
     let gameOverSoundPlayed = false;
     let speedMultiplier = 1;
+    let laserFired = false; // To track if a laser has already been fired
 
     Object.keys(imagePaths).forEach((key) => {
         assets[key].src = imagePaths[key];
@@ -65,7 +66,6 @@ window.onload = function () {
         if (e.code === 'ArrowRight') player.x += 10;
         if (e.code === 'ArrowUp') player.y -= 10;
         if (e.code === 'ArrowDown') player.y += 10;
-        if (e.code === 'Space') shootLaser();
     }
 
     function movePlayerTouch(e) {
@@ -83,16 +83,18 @@ window.onload = function () {
     }
 
     function shootLaser() {
-        if (gameOver) return;
+        if (gameOver || laserFired) return; // Prevent multiple lasers
         lasers.push({ x: player.x, y: player.y, angle: player.angle });
         assets.laserSound.play();
+        laserFired = true;
+        setTimeout(() => laserFired = false, 300); // Allow shooting again after a short delay
     }
 
     function checkCollisions() {
         lasers.forEach((laser, li) => {
             [drones, blackDrones, bombs].forEach((arr, ai) => {
                 arr.forEach((obj, oi) => {
-                    if (Math.hypot(obj.x - laser.x, obj.y - laser.y) < 40) {
+                    if (Math.hypot(obj.x - laser.x, obj.y - laser.y) < 30) { // Adjust collision radius
                         explosions.push({ x: obj.x, y: obj.y, timer: 30 });
                         arr.splice(oi, 1);
                         lasers.splice(li, 1);
@@ -127,7 +129,7 @@ window.onload = function () {
         [drones, blackDrones, bombs, snowflakes].forEach((arr, index) => {
             arr.forEach(obj => {
                 obj.y += obj.speed;
-                context.drawImage(assets[index === 0 ? 'drone' : index === 1 ? 'blackDrone' : index === 2 ? 'bomb' : 'snowflake'], obj.x, obj.y, 80, 80);
+                context.drawImage(assets[index === 0 ? 'drone' : index === 1 ? 'blackDrone' : index === 2 ? 'bomb' : 'snowflake'], obj.x, obj.y, 50, 50); // Reduced size
             });
         });
 
