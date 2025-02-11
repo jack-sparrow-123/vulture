@@ -241,3 +241,20 @@ window.onload = function () {
         gameLoop();
     }
 };
+
+
+
+ function pauseGame() {
+    // Add your code to pause the game
+    console.log("Game Paused");
+}
+
+function restartGame() {
+    // Add your code to restart the game
+    console.log("Game Restarted");
+}
+
+function toggleSound() {
+    // Add your code to toggle sound on/off
+    console.log("Sound Toggled");
+}
