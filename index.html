@@ -8,6 +8,40 @@
 <body>
     <canvas id="gameCanvas" width="800" height="600"></canvas>
     <script src="script.js"></script>
+    <button class="back-button" onclick="goHome()">Home</button>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const context = canvas.getContext('2d');
+
+        // Set up the canvas
+        function setupCanvas() {
+            context.fillStyle = '#ffffff';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // Draw a sample object (e.g., a rectangle)
+        function drawSampleObject() {
+            context.fillStyle = '#007bff';
+            context.fillRect(100, 100, 200, 100);
+        }
+
+        // Initialize the game
+        function initGame() {
+            setupCanvas();
+            drawSampleObject();
+        }
+
+        // Start the game
+        initGame();
+
+        // Navigate to homepage
+        function goHome() {
+            window.location.href = 'https://jack-sparrow-123.github.io/homepage';
+        }
+    </script>
+</body>
+</html>
+
     
 </body>
 </html>
