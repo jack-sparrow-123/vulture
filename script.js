@@ -90,12 +90,60 @@ window.onload = function () {
         }
     });
 
-    function shootLaser() {
-        if (lasers.length === 0) { // Only allow one laser at a time
-            lasers.push({ x: player.x, y: player.y });
-            assets.laserSound.play();
+
+
+
+    function checkLaserCollisions() {
+    if (lasers.length > 0) {
+        let beam = lasers[0];
+
+        // Laser starts at the gun tip
+        const startX = player.x + Math.cos(player.angle) * (player.size / 2);
+        const startY = player.y + Math.sin(player.angle) * (player.size / 2);
+        
+        // Laser extends to the edge of the canvas
+        const endX = startX + Math.cos(player.angle) * canvas.height;
+        const endY = startY + Math.sin(player.angle) * canvas.height;
+
+        // Function to check if a point is on the laser path
+        function isHit(obj, size) {
+            const dist = Math.abs((endY - startY) * obj.x - (endX - startX) * obj.y + endX * startY - endY * startX) / 
+                         Math.sqrt((endY - startY) ** 2 + (endX - startX) ** 2);
+            return dist < size / 2;
         }
+
+        // Check collision with normal drones
+        drones.forEach((drone, i) => {
+            if (isHit(drone, 80)) {
+                explosions.push({ x: drone.x, y: drone.y, timer: 30 });
+                drones.splice(i, 1);
+                score += 10;
+                assets.explosionSound.play();
+            }
+        });
+
+        // Check collision with black drones (Game Over)
+        blackDrones.forEach((drone, i) => {
+            if (isHit(drone, 80)) {
+                explosions.push({ x: drone.x, y: drone.y, timer: 30 });
+                blackDrones.splice(i, 1);
+                gameOver = true;
+                assets.explosionSound.play();
+            }
+        });
+
+        // Check collision with bombs (Game Over)
+        bombs.forEach((bomb, i) => {
+            if (isHit(bomb, 60)) {
+                explosions.push({ x: bomb.x, y: bomb.y, timer: 30 });
+                bombs.splice(i, 1);
+                gameOver = true;
+                assets.explosionSound.play();
+            }
+        });
     }
+}
+
 
     window.addEventListener('resize', () => {
         canvas.width = window.innerWidth;
@@ -207,10 +255,14 @@ window.onload = function () {
             });
         }
 
-        explosions.forEach((exp, i) => {
-            context.drawImage(assets.explosion, exp.x, exp.y, 100, 100);
-            if (--exp.timer <= 0) explosions.splice(i, 1);
-        });
+      function drawExplosions() {
+    explosions.forEach((exp, i) => {
+        context.drawImage(assets.explosion, exp.x, exp.y, 100, 100);
+        exp.timer--;
+        if (exp.timer <= 0) explosions.splice(i, 1);
+    });
+}
+
 
         context.fillStyle = 'white';
         context.font = '20px Arial';
