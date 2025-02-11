@@ -27,39 +27,11 @@
             background-color: #0056b3;
         }
         
-.settings-menu {
-    position: fixed;
-    top: 50px;
-    right: 50px;
-    background-color: rgba(0, 0, 0, 0.8);
-    padding: 20px;
-    border-radius: 10px;
-    z-index: 1000;
-}
-
-.settings-button {
-    display: block;
-    margin: 10px 0;
-    padding: 10px;
-    font-size: 16px;
-    color: white;
-    background-color: #007bff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
 
         
     </style>
 </head>
 <body>
-
-    <div class="settings-menu" id="settingsMenu">
-    <button class="settings-button" onclick="pauseGame()">Pause</button>
-    <button class="settings-button" onclick="restartGame()">Restart</button>
-    <button class="settings-button" onclick="toggleSound()">Sound On/Off</button>
-</div>
-
     <button class="back-button" onclick="goHome()">Home</button>
     <canvas id="gameCanvas" width="800" height="600"></canvas>
     <script src="script.js"></script>
