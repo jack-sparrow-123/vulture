@@ -34,7 +34,7 @@ window.onload = function () {
     let gameOver = false;
     let gameOverSoundPlayed = false;
     let speedMultiplier = 1;
-    let laserFired = false; // To track if a laser has already been fired
+    let laserFired = false;
 
     Object.keys(imagePaths).forEach((key) => {
         assets[key].src = imagePaths[key];
@@ -83,18 +83,18 @@ window.onload = function () {
     }
 
     function shootLaser() {
-        if (gameOver || laserFired) return; // Prevent multiple lasers
+        if (gameOver || laserFired) return;
         lasers.push({ x: player.x, y: player.y, angle: player.angle });
         assets.laserSound.play();
         laserFired = true;
-        setTimeout(() => laserFired = false, 300); // Allow shooting again after a short delay
+        setTimeout(() => laserFired = false, 300);
     }
 
     function checkCollisions() {
         lasers.forEach((laser, li) => {
             [drones, blackDrones, bombs].forEach((arr, ai) => {
                 arr.forEach((obj, oi) => {
-                    if (Math.hypot(obj.x - laser.x, obj.y - laser.y) < 30) { // Adjust collision radius
+                    if (Math.hypot(obj.x - laser.x, obj.y - laser.y) < 30) {
                         explosions.push({ x: obj.x, y: obj.y, timer: 30 });
                         arr.splice(oi, 1);
                         lasers.splice(li, 1);
@@ -112,7 +112,7 @@ window.onload = function () {
         if (score >= 50) speedMultiplier = 1.5;
         if (Math.random() < 0.3) blackDrones.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 2 * speedMultiplier });
         if (Math.random() < 0.2) bombs.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 2 * speedMultiplier });
-        snowflakes.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 1 });
+        snowflakes.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 1, size: Math.random() * 10 + 5 });
     }
 
     function drawGameObjects() {
@@ -129,17 +129,26 @@ window.onload = function () {
         [drones, blackDrones, bombs, snowflakes].forEach((arr, index) => {
             arr.forEach(obj => {
                 obj.y += obj.speed;
-                context.drawImage(assets[index === 0 ? 'drone' : index === 1 ? 'blackDrone' : index === 2 ? 'bomb' : 'snowflake'], obj.x, obj.y, 50, 50); // Reduced size
+                if (index === 3) {
+                    context.drawImage(assets.snowflake, obj.x, obj.y, obj.size, obj.size);
+                } else {
+                    context.drawImage(assets[index === 0 ? 'drone' : index === 1 ? 'blackDrone' : 'bomb'], obj.x, obj.y, 50, 50);
+                }
             });
         });
 
-        lasers.forEach(laser => {
+        lasers.forEach((laser, index) => {
+            laser.x += Math.cos(laser.angle) * 10;
+            laser.y += Math.sin(laser.angle) * 10;
             context.strokeStyle = 'red';
             context.lineWidth = 4;
             context.beginPath();
             context.moveTo(laser.x, laser.y);
             context.lineTo(laser.x + Math.cos(laser.angle) * 1000, laser.y + Math.sin(laser.angle) * 1000);
             context.stroke();
+            if (laser.x < 0 || laser.x > canvas.width || laser.y < 0 || laser.y > canvas.height) {
+                lasers.splice(index, 1);
+            }
         });
 
         explosions.forEach((explosion, index) => {
@@ -154,7 +163,10 @@ window.onload = function () {
 
     function gameLoop() {
         if (gameOver) {
-            if (!gameOverSoundPlayed) assets.gameOverSound.play();
+            if (!gameOverSoundPlayed) {
+                assets.gameOverSound.play();
+                gameOverSoundPlayed = true;
+            }
             return;
         }
         drawGameObjects();
