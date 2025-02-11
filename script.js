@@ -34,7 +34,7 @@ window.onload = function () {
     let gameOver = false;
     let gameOverSoundPlayed = false;
     let speedMultiplier = 1;
-    let laserActive = false; // Tracks if the laser is active
+    let laserActive = false;
 
     Object.keys(imagePaths).forEach((key) => {
         assets[key].src = imagePaths[key];
@@ -110,12 +110,28 @@ window.onload = function () {
                 if (lineCircleIntersection(player.x, player.y, laserEndX, laserEndY, obj.x, obj.y, 25)) {
                     explosions.push({ x: obj.x, y: obj.y, timer: 30 });
                     arr.splice(i, 1);
-                    if (ai === 0) score += 10; // Score for drones
-                    else {
+
+                    // Increase score or trigger game over
+                    if (ai === 0) {
+                        score += 10; // Score for drones
+                    } else {
                         gameOver = true; // Game over for black drones and bombs
-                        assets.gameOverSound.play();
+                        if (!gameOverSoundPlayed) {
+                            assets.gameOverSound.play();
+                            gameOverSoundPlayed = true;
+                        }
                     }
+
+                    // Play explosion sound immediately
+                    assets.explosionSound.currentTime = 0; // Reset sound position to ensure it plays from the beginning
                     assets.explosionSound.play();
+
+                    // Stop the laser sound immediately when hitting a target
+                    if (laserActive) {
+                        assets.laserSound.pause();
+                        assets.laserSound.currentTime = 0;
+                        laserActive = false;
+                    }
                 }
             }
         });
