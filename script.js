@@ -23,14 +23,14 @@ window.onload = function () {
         laserSound: new Audio('attack-laser-128280.mp3'),
         explosionSound: new Audio('small-explosion-129477.mp3'),
         backgroundMusic: new Audio('lonely-winter-breeze-36867.mp3'),
-        gameOverSound: new Audio('game-over.mp3') 
+        gameOverSound: new Audio('game-over-38511.mp3') 
     };
-    assets.player.src = 'gun2.png';
-    assets.drone.src = 'drone2.png';
-    assets.blackDrone.src = 'blackdrone.png';
+    assets.player.src = 'gun2.png.png';
+    assets.drone.src = 'drone2.png.png';
+    assets.blackDrone.src = 'blackdrone.png.png';
     assets.bomb.src = 'bomb.png.png';
-    assets.explosion.src = 'explosion.png';
-    assets.snowflake.src = 'snowflake.png';
+    assets.explosion.src = 'explosion.png.png';
+    assets.snowflake.src = 'snowflake.png.png';
     assets.backgroundMusic.loop = true;
 
     let player = { x: canvas.width / 2, y: canvas.height - 100, size: 80, angle: 0 };
