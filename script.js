@@ -48,10 +48,10 @@ window.onload = function () {
 
     document.addEventListener('click', enableAudio);
     document.addEventListener('keydown', movePlayer);
-    document.addEventListener('mousedown', () => laserActive = true);
-    document.addEventListener('mouseup', () => laserActive = false);
-    document.addEventListener('touchstart', () => laserActive = true);
-    document.addEventListener('touchend', () => laserActive = false);
+    document.addEventListener('mousedown', activateLaser);
+    document.addEventListener('mouseup', deactivateLaser);
+    document.addEventListener('touchstart', activateLaser);
+    document.addEventListener('touchend', deactivateLaser);
     canvas.addEventListener('mousemove', aimGun);
     canvas.addEventListener('touchmove', movePlayerTouch);
 
@@ -82,6 +82,19 @@ window.onload = function () {
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
         player.angle = Math.atan2(mouseY - player.y, mouseX - player.x);
+    }
+
+    function activateLaser() {
+        if (!laserActive) {
+            laserActive = true;
+            assets.laserSound.currentTime = 0; // Reset sound to start
+            assets.laserSound.play();
+            checkLaserCollisions(); // Immediate collision check
+        }
+    }
+
+    function deactivateLaser() {
+        laserActive = false;
     }
 
     function checkLaserCollisions() {
@@ -203,7 +216,7 @@ window.onload = function () {
             return;
         }
         drawGameObjects();
-        checkLaserCollisions();
+        if (laserActive) checkLaserCollisions(); // Check collisions only when laser is active
         requestAnimationFrame(gameLoop);
     }
 
