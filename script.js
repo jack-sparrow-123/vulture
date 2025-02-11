@@ -1,8 +1,8 @@
 window.onload = function () {
-    const canvas = document.getElementById('gameCanvas');
-    const context = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    console.log("Waiting for images to load...");
+};
+
+
 
     function drawRotatedImage(img, x, y, angle, size) {
         context.save();
@@ -12,27 +12,54 @@ window.onload = function () {
         context.restore();
     }
 
-    // Load assets
-    const assets = {
-        player: new Image(),
-        drone: new Image(),
-        blackDrone: new Image(),
-        bomb: new Image(),
-        explosion: new Image(),
-        snowflake: new Image(),
-        laserSound: new Audio('attack-laser-128280.mp3'),
-        explosionSound: new Audio('small-explosion-129477.mp3'),
-        backgroundMusic: new Audio('lonely-winter-breeze-36867.mp3'),
-        gameOverSound: new Audio('game-over-38511.mp3') 
-    };
-    assets.player.src = 'gun2.png.png';
-    assets.drone.src = 'drone2.png.png';
-    assets.blackDrone.src = 'blackdrone.png.png';
-    assets.bomb.src = 'bomb.png.png';
-    assets.explosion.src = 'explosion.png.png';
-    assets.snowflake.src = 'snowflake.png.png';
-    assets.backgroundMusic.loop = true;
+   const assets = {
+    player: new Image(),
+    drone: new Image(),
+    blackDrone: new Image(),
+    bomb: new Image(),
+    explosion: new Image(),
+    snowflake: new Image(),
+    laserSound: new Audio('attack-laser-128280.mp3'),
+    explosionSound: new Audio('small-explosion-129477.mp3'),
+    backgroundMusic: new Audio('lonely-winter-breeze-36867.mp3'),
+    gameOverSound: new Audio('game-over-38511.mp3')
+};
 
+// Set image sources
+const imagePaths = {
+    player: 'gun2.png.png',
+    drone: 'drone2.png.png',
+    blackDrone: 'blackdrone.png',
+    bomb: 'bomb.png.png',
+    explosion: 'explosion.png.png',
+    snowflake: 'snowflake.png.png'
+};
+
+// Track loaded images
+let loadedImages = 0;
+let totalImages = Object.keys(imagePaths).length;
+
+// Ensure images are fully loaded before running the game
+Object.keys(imagePaths).forEach((key) => {
+    assets[key].src = imagePaths[key];
+    assets[key].onload = () => {
+        loadedImages++;
+        if (loadedImages === totalImages) {
+            startGame();
+        }
+    };
+    assets[key].onerror = () => {
+        console.error(`Error loading image: ${imagePaths[key]}`);
+    };
+});
+
+// Don't start the game until all images are loaded
+function startGame() {
+    assets.backgroundMusic.loop = true;
+    gameLoop();
+}
+ 
+   
     let player = { x: canvas.width / 2, y: canvas.height - 100, size: 80, angle: 0 };
     let drones = [], blackDrones = [], bombs = [], lasers = [], explosions = [], snowflakes = [], score = 0;
     let isAudioEnabled = false;
