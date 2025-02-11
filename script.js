@@ -11,10 +11,10 @@ window.onload = function () {
         bomb: new Image(),
         explosion: new Image(),
         snowflake: new Image(),
-        laserSound: new Audio('attack-laser-128280.mp3'),
+        laserSound: new Audio('laser-shot-.mp3'),
         explosionSound: new Audio('small-explosion-129477.mp3'),
         backgroundMusic: new Audio('lonely-winter-breeze-36867.mp3'),
-        gameOverSound: new Audio('game-over-38511.mp3')
+        gameOverSound: new Audio('gameover.mp3')
     };
 
     const imagePaths = {
