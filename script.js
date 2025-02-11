@@ -36,13 +36,6 @@ window.onload = function () {
     let speedMultiplier = 1;
     let laserActive = false; // Tracks if the laser is active
 
-    // Object pools for better performance
-    const dronePool = [];
-    const blackDronePool = [];
-    const bombPool = [];
-    const explosionPool = [];
-    const snowflakePool = [];
-
     Object.keys(imagePaths).forEach((key) => {
         assets[key].src = imagePaths[key];
         assets[key].onload = () => {
@@ -115,11 +108,7 @@ window.onload = function () {
             for (let i = arr.length - 1; i >= 0; i--) {
                 const obj = arr[i];
                 if (lineCircleIntersection(player.x, player.y, laserEndX, laserEndY, obj.x, obj.y, 25)) {
-                    const explosion = explosionPool.length > 0 ? explosionPool.pop() : {};
-                    explosion.x = obj.x;
-                    explosion.y = obj.y;
-                    explosion.timer = 30;
-                    explosions.push(explosion);
+                    explosions.push({ x: obj.x, y: obj.y, timer: 30 });
                     arr.splice(i, 1);
                     if (ai === 0) score += 10; // Score for drones
                     else {
@@ -153,11 +142,9 @@ window.onload = function () {
     }
 
     function spawnObjects() {
-        if (score >= 50) {
-            speedMultiplier = 1.5;
-            if (Math.random() < 0.5) blackDrones.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 2 * speedMultiplier });
-        }
         drones.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 1 * speedMultiplier });
+        if (score >= 50) speedMultiplier = 1.5;
+        if (Math.random() < 0.3) blackDrones.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 2 * speedMultiplier });
         if (Math.random() < 0.2) bombs.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 2 * speedMultiplier });
         snowflakes.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 1, size: Math.random() * 10 + 5 });
     }
@@ -199,14 +186,10 @@ window.onload = function () {
         }
 
         // Draw explosions
-        for (let i = explosions.length - 1; i >= 0; i--) {
-            const explosion = explosions[i];
+        explosions.forEach((explosion, index) => {
             context.drawImage(assets.explosion, explosion.x - 40, explosion.y - 40, 80, 80);
-            if (--explosion.timer <= 0) {
-                explosions.splice(i, 1);
-                explosionPool.push(explosion); // Reuse explosion object
-            }
-        }
+            if (--explosion.timer <= 0) explosions.splice(index, 1);
+        });
 
         // Draw score
         context.fillStyle = 'white';
@@ -232,7 +215,7 @@ window.onload = function () {
             return;
         }
         drawGameObjects();
-        if (laserActive) checkLaserCollisions(); // Check collisions only when laser is active
+        checkLaserCollisions(); // Check collisions every frame
         requestAnimationFrame(gameLoop);
     }
 
