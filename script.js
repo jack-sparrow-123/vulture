@@ -1,15 +1,13 @@
-// Initialize the canvas and context
-const canvas = document.createElement('canvas');
-document.body.appendChild(canvas);
-const context = canvas.getContext('2d');
-
-// Set canvas dimensions
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
 window.onload = function () {
     console.log("Waiting for images to load...");
 };
+
+const canvas = document.getElementById('gameCanvas');
+const context = canvas.getContext('2d');
+
+// Set canvas size
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
 function drawRotatedImage(img, x, y, angle, size) {
     context.save();
@@ -37,7 +35,7 @@ const imagePaths = {
     player: 'gun2.png.png',
     drone: 'drone2.png.png',
     blackDrone: 'blackdrone.png.png',
-    bomb: 'bomb.png.png',
+    bomb: 'bomb.png',
     explosion: 'explosion.png.png',
     snowflake: 'snowflake.png.png'
 };
@@ -66,6 +64,7 @@ function startGame() {
     gameLoop();
 }
 
+// Game variables
 let player = { x: canvas.width / 2, y: canvas.height - 100, size: 80, angle: 0 };
 let drones = [], blackDrones = [], bombs = [], lasers = [], explosions = [], snowflakes = [], score = 0;
 let isAudioEnabled = false;
@@ -96,32 +95,19 @@ canvas.addEventListener('touchmove', (e) => {
 document.addEventListener('keydown', (e) => {
     if (!gameOver) {
         const speed = 5;
-        if (e.key === 'ArrowLeft') {
-            player.x -= speed;
-        } else if (e.key === 'ArrowRight') {
-            player.x += speed;
-        } else if (e.key === 'ArrowUp') {
-            player.y -= speed;
-        } else if (e.key === 'ArrowDown') {
-            player.y += speed;
-        }
+        if (e.key === 'ArrowLeft') player.x -= speed;
+        if (e.key === 'ArrowRight') player.x += speed;
+        if (e.key === 'ArrowUp') player.y -= speed;
+        if (e.key === 'ArrowDown') player.y += speed;
+        
         // Keep player within canvas bounds
         player.x = Math.max(0, Math.min(canvas.width, player.x));
         player.y = Math.max(0, Math.min(canvas.height, player.y));
     }
 });
 
-canvas.addEventListener('click', () => {
-    if (!gameOver) {
-        shootLaser();
-    }
-});
-
-canvas.addEventListener('touchstart', () => {
-    if (!gameOver) {
-        shootLaser();
-    }
-});
+canvas.addEventListener('click', () => { if (!gameOver) shootLaser(); });
+canvas.addEventListener('touchstart', () => { if (!gameOver) shootLaser(); });
 
 function shootLaser() {
     if (!gameOver) {
@@ -134,22 +120,18 @@ function checkLaserCollisions() {
     if (lasers.length > 0) {
         let beam = lasers[0];
 
-        // Laser starts at the gun tip
         const startX = player.x + Math.cos(player.angle) * (player.size / 2);
         const startY = player.y + Math.sin(player.angle) * (player.size / 2);
 
-        // Laser extends to the edge of the canvas
         const endX = startX + Math.cos(player.angle) * canvas.height;
         const endY = startY + Math.sin(player.angle) * canvas.height;
 
-        // Function to check if a point is on the laser path
         function isHit(obj, size) {
             const dist = Math.abs((endY - startY) * obj.x - (endX - startX) * obj.y + endX * startY - endY * startX) /
                 Math.sqrt((endY - startY) ** 2 + (endX - startX) ** 2);
             return dist < size / 2;
         }
 
-        // Check collision with normal drones
         drones.forEach((drone, i) => {
             if (isHit(drone, 80)) {
                 explosions.push({ x: drone.x, y: drone.y, timer: 30 });
@@ -159,7 +141,6 @@ function checkLaserCollisions() {
             }
         });
 
-        // Check collision with black drones (Game Over)
         blackDrones.forEach((drone, i) => {
             if (isHit(drone, 80)) {
                 explosions.push({ x: drone.x, y: drone.y, timer: 30 });
@@ -169,7 +150,6 @@ function checkLaserCollisions() {
             }
         });
 
-        // Check collision with bombs (Game Over)
         bombs.forEach((bomb, i) => {
             if (isHit(bomb, 60)) {
                 explosions.push({ x: bomb.x, y: bomb.y, timer: 30 });
@@ -195,35 +175,17 @@ document.addEventListener('click', () => {
     }
 });
 
-function createDrone() {
-    drones.push({ x: Math.random() * (canvas.width - 80), y: 0, speed: Math.random() * 2 + 1 + score / 100 });
-}
-
-function createBlackDrone() {
-    blackDrones.push({ x: Math.random() * (canvas.width - 80), y: 0, speed: Math.random() * 2 + 2 + score / 100 });
-}
-
-function createBomb() {
-    bombs.push({ x: Math.random() * (canvas.width - 80), y: 0, speed: Math.random() * 2 + 2 + score / 100 });
-}
-
-function createSnowflake() {
-    snowflakes.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 1 });
-}
-
-function drawExplosions() {
-    explosions.forEach((exp, i) => {
-        context.drawImage(assets.explosion, exp.x, exp.y, 100, 100);
-        exp.timer--;
-        if (exp.timer <= 0) explosions.splice(i, 1);
-    });
-}
+// Spawning functions
+setInterval(() => drones.push({ x: Math.random() * (canvas.width - 80), y: 0, speed: Math.random() * 2 + 1 + score / 100 }), 1000);
+setInterval(() => blackDrones.push({ x: Math.random() * (canvas.width - 80), y: 0, speed: Math.random() * 2 + 2 + score / 100 }), 3000);
+setInterval(() => bombs.push({ x: Math.random() * (canvas.width - 80), y: 0, speed: Math.random() * 2 + 2 + score / 100 }), 5000);
+setInterval(() => snowflakes.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 1 }), 500);
 
 function gameLoop() {
     if (gameOver) {
         if (!gameOverSoundPlayed) {
-            assets.gameOverSound.play(); // Play game over sound
-            gameOverSoundPlayed = true; // Ensure it plays only once
+            assets.gameOverSound.play();
+            gameOverSoundPlayed = true;
         }
         context.fillStyle = 'red';
         context.font = '40px Arial';
@@ -235,61 +197,8 @@ function gameLoop() {
     context.fillRect(0, 0, canvas.width, canvas.height);
 
     drawRotatedImage(assets.player, player.x, player.y, player.angle, player.size);
-
-    drones.forEach(drone => {
-        drone.y += drone.speed;
-        context.drawImage(assets.drone, drone.x, drone.y, 80, 80);
-    });
-
-    blackDrones.forEach(drone => {
-        drone.y += drone.speed;
-        context.drawImage(assets.blackDrone, drone.x, drone.y, 80, 80);
-    });
-
-    bombs.forEach(bomb => {
-        bomb.y += bomb.speed;
-        context.drawImage(assets.bomb, bomb.x, bomb.y, 60, 60);
-    });
-
-    snowflakes.forEach(snowflake => {
-        snowflake.y += snowflake.speed;
-        context.drawImage(assets.snowflake, snowflake.x, snowflake.y, 20, 20);
-        if (snowflake.y > canvas.height) {
-            snowflake.y = 0; // Reset snowflake to the top
-        }
-    });
-
-    if (lasers.length > 0) {
-        let beam = lasers[0];
-        const tipX = player.x + Math.cos(player.angle) * (player.size / 2);
-        const tipY = player.y + Math.sin(player.angle) * (player.size / 2);
-
-        beam.x = tipX;
-        beam.y = tipY;
-
-        context.strokeStyle = 'red';
-        context.lineWidth = 6;
-        context.beginPath();
-        context.moveTo(tipX, tipY);
-        context.lineTo(tipX + Math.cos(player.angle) * canvas.height, tipY + Math.sin(player.angle) * canvas.height);
-        context.stroke();
-
-        checkLaserCollisions();
-    }
-
-    drawExplosions();
-
-    context.fillStyle = 'white';
-    context.font = '20px Arial';
-    context.fillText('Score: ' + score, 20, 30);
-
+    checkLaserCollisions();
     requestAnimationFrame(gameLoop);
 }
-
-// Start spawning objects
-setInterval(createDrone, 1000);
-setInterval(createBlackDrone, 3000);
-setInterval(createBomb, 5000);
-setInterval(createSnowflake, 500);
 
 gameLoop();
