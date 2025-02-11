@@ -93,26 +93,35 @@
             window.location.href = 'https://jack-sparrow-123.github.io/homepage/';
         }
 
-
 let isPaused = false;
 let isSoundOn = true;
 
+// Toggle Pause/Resume
 function togglePause() {
     isPaused = !isPaused;
-    document.querySelector(".pause").innerText = isPaused ? "Resume" : "Pause";
-    // Removed alert
+    const pauseButton = document.querySelector(".pause");
+    if (pauseButton) {
+        pauseButton.innerText = isPaused ? "Resume" : "Pause";
+    }
+    console.log(isPaused ? "Game Paused" : "Game Resumed"); // Debugging
 }
 
-function restartGame() {
-    // Removed alert
-    location.reload();
-}
-
+// Toggle Sound On/Off
 function toggleSound() {
     isSoundOn = !isSoundOn;
-    document.querySelector(".sound").innerText = isSoundOn ? "Sound: ON" : "Sound: OFF";
-    // Removed alert
+    const soundButton = document.querySelector(".sound");
+    if (soundButton) {
+        soundButton.innerText = isSoundOn ? "Sound: ON" : "Sound: OFF";
+    }
+    console.log(isSoundOn ? "Sound Enabled" : "Sound Muted"); // Debugging
 }
+
+// Restart Game
+function restartGame() {
+    location.reload(); // Reload the page to restart the game
+    console.log("Game Restarted"); // Debugging
+}
+
        
     </script>
 
