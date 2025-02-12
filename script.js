@@ -15,7 +15,7 @@ window.onload = function () {
         explosion: new Image(),
         iceEffect: new Image(),
         snowflake: new Image(), // Add snowflake image
-        laserSound: new Audio('laser-shot.mp3'),
+        laserSound: new Audio('laser-shot-.mp3'),
         explosionSound: new Audio('small-explosion-129477.mp3'),
         snowExplosionSound: new Audio('snow-explosion.mp3'),
         backgroundMusic: new Audio('lonely-winter-breeze-36867.mp3'),
