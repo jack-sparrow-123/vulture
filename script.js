@@ -13,13 +13,14 @@ window.onload = function () {
         snowDrone: new Image(),
         bomb: new Image(),
         explosion: new Image(),
-        snowflake: new Image(),
         iceEffect: new Image(),
-        laserSound: new Audio('laser-shot-.mp3'),
+        snowflake: new Image(), // Add snowflake image
+        laserSound: new Audio('laser-shot.mp3'),
         explosionSound: new Audio('small-explosion-129477.mp3'),
         snowExplosionSound: new Audio('snow-explosion.mp3'),
         backgroundMusic: new Audio('lonely-winter-breeze-36867.mp3'),
-        gameOverSound: new Audio('gameover.mp3')
+        gameOverSound: new Audio('gameover.mp3'),
+        freezeSound: new Audio('freeze-sound.mp3.mp3')
     };
 
     assets.iceEffect.src = 'iceoverlay.png';
@@ -32,7 +33,7 @@ window.onload = function () {
         snowDrone: 'snowdrone.png.png',
         bomb: 'bomb.png.png',
         explosion: 'explosion.png.png',
-        snowflake: 'snowflake.png.png'
+        snowflake: 'snowflake.png.png' // Add snowflake image path
     };
 
     let loadedImages = 0;
@@ -62,33 +63,49 @@ window.onload = function () {
         const laserEndX = player.x + Math.cos(player.angle) * canvas.width * 2;
         const laserEndY = player.y + Math.sin(player.angle) * canvas.width * 2;
 
-        [drones, blackDrones, snowDrones, bombs].forEach((arr, ai) => {
+        // Check collisions with drones
+        for (let i = drones.length - 1; i >= 0; i--) {
+            const drone = drones[i];
+            if (lineCircleIntersection(player.x, player.y, laserEndX, laserEndY, drone.x, drone.y, 25)) {
+                explosions.push({ x: drone.x, y: drone.y, timer: 30, isSnowExplosion: false });
+                assets.explosionSound.play();
+                drones.splice(i, 1);
+                score += 10;
+            }
+        }
+
+        // Check collisions with black drones, bombs, and frozen drones
+        [blackDrones, bombs, snowDrones].forEach((arr, ai) => {
             for (let i = arr.length - 1; i >= 0; i--) {
                 const obj = arr[i];
                 if (lineCircleIntersection(player.x, player.y, laserEndX, laserEndY, obj.x, obj.y, 25)) {
-                    if (ai === 2) {
-                        // If it's a snow drone and it's frozen
-                        if (obj.frozen) {
-                            explosions.push({ x: obj.x, y: obj.y, timer: 30, isSnowExplosion: true });
-                            assets.snowExplosionSound.play(); // Play the snow explosion sound
-                            // Create snow effect explosion
-                            for (let j = 0; j < 50; j++) {
-                                snowflakes.push({ x: obj.x, y: obj.y, speed: Math.random() * 2 + 1, size: Math.random() * 10 + 5 });
-                            }
-                        } else {
-                            // If it's a snow drone but not frozen
-                            explosions.push({ x: obj.x, y: obj.y, timer: 30, isSnowExplosion: true });
-                            assets.snowExplosionSound.play(); // Play the snow explosion sound
-                        }
-                    } else {
-                        explosions.push({ x: obj.x, y: obj.y, timer: 30, isSnowExplosion: false });
-                        if (ai === 0) score += 10;
-                        assets.explosionSound.play();
+                    if (ai === 2 && obj.frozen) { // Frozen drone
+                        createSnowExplosion(obj.x, obj.y);
+                        assets.snowExplosionSound.play();
+                    } else { // Black drone or bomb
+                        gameOver = true;
+                        assets.gameOverSound.play();
+                        return;
                     }
                     arr.splice(i, 1);
                 }
             }
         });
+    }
+
+    function createSnowExplosion(x, y) {
+        for (let i = 0; i < 50; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 3 + 1;
+            snowflakes.push({
+                x: x,
+                y: y,
+                dx: Math.cos(angle) * speed,
+                dy: Math.sin(angle) * speed,
+                size: Math.random() * 10 + 5, // Random size for snowflakes
+                alpha: 1
+            });
+        }
     }
 
     function spawnObjects() {
@@ -100,7 +117,18 @@ window.onload = function () {
         if (score >= 600 && Math.random() < 0.3) snowDrones.push({
             x: Math.random() * canvas.width, y: 0, speed: Math.random() * 3 + 3 * speedMultiplier, hp: 3, frozen: false
         });
-        snowflakes.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 1, size: Math.random() * 10 + 5 });
+
+        // Spawn snowflakes
+        if (Math.random() < 0.5) {
+            snowflakes.push({
+                x: Math.random() * canvas.width,
+                y: 0,
+                dx: (Math.random() - 0.5) * 2, // Random horizontal movement
+                dy: Math.random() * 2 + 1, // Random vertical speed
+                size: Math.random() * 10 + 5, // Random size
+                alpha: 1
+            });
+        }
     }
 
     function updateFreeze() {
@@ -115,11 +143,26 @@ window.onload = function () {
         context.fillStyle = '#001F3F';
         context.fillRect(0, 0, canvas.width, canvas.height);
 
-        if (isFrozen) {
-            freezeEffectAlpha = Math.min(freezeEffectAlpha + 0.02, 0.7);
-            context.drawImage(assets.iceEffect, 0, 0, canvas.width, canvas.height);
-        }
+        // Draw snowflakes
+        snowflakes.forEach((snowflake, index) => {
+            context.globalAlpha = snowflake.alpha;
+            context.drawImage(
+                assets.snowflake,
+                snowflake.x - snowflake.size / 2,
+                snowflake.y - snowflake.size / 2,
+                snowflake.size,
+                snowflake.size
+            );
+            context.globalAlpha = 1;
+            snowflake.x += snowflake.dx;
+            snowflake.y += snowflake.dy;
+            snowflake.alpha -= 0.01;
+            if (snowflake.alpha <= 0 || snowflake.y > canvas.height) {
+                snowflakes.splice(index, 1);
+            }
+        });
 
+        // Draw explosions
         explosions.forEach((explosion, index) => {
             if (explosion.isSnowExplosion) {
                 context.fillStyle = 'rgba(255, 255, 255, 0.8)';
@@ -132,35 +175,55 @@ window.onload = function () {
             if (--explosion.timer <= 0) explosions.splice(index, 1);
         });
 
-        // Draw snowflakes effect for frozen drones explosion
-        snowflakes.forEach(snowflake => {
-            context.fillStyle = 'rgba(255, 255, 255, 0.5)';
-            context.beginPath();
-            context.arc(snowflake.x, snowflake.y, snowflake.size, 0, Math.PI * 2);
-            context.fill();
-            snowflake.y += snowflake.speed; // Falling effect
-            if (snowflake.y > canvas.height) snowflake.y = 0; // Reset snowflake when it falls off screen
-        });
-
-        // Draw frozen drones explosion effect
+        // Draw drones, black drones, bombs, and frozen drones
+        drones.forEach(drone => context.drawImage(assets.drone, drone.x - 25, drone.y - 25, 50, 50));
+        blackDrones.forEach(drone => context.drawImage(assets.blackDrone, drone.x - 25, drone.y - 25, 50, 50));
+        bombs.forEach(bomb => context.drawImage(assets.bomb, bomb.x - 25, bomb.y - 25, 50, 50));
         snowDrones.forEach(drone => {
             if (drone.frozen) {
                 context.fillStyle = 'rgba(255, 255, 255, 0.8)';
                 context.beginPath();
                 context.arc(drone.x, drone.y, 40, 0, Math.PI * 2);
                 context.fill();
+            } else {
+                context.drawImage(assets.snowDrone, drone.x - 25, drone.y - 25, 50, 50);
             }
         });
+
+        // Draw player
+        context.save();
+        context.translate(player.x, player.y);
+        context.rotate(player.angle);
+        context.drawImage(assets.player, -player.size / 2, -player.size / 2, player.size, player.size);
+        context.restore();
+
+        // Draw freeze effect
+        if (isFrozen) {
+            freezeEffectAlpha = Math.min(freezeEffectAlpha + 0.02, 0.7);
+            context.globalAlpha = freezeEffectAlpha;
+            context.drawImage(assets.iceEffect, 0, 0, canvas.width, canvas.height);
+            context.globalAlpha = 1;
+        }
+
+        // Draw score
+        context.fillStyle = 'white';
+        context.font = '20px Arial';
+        context.fillText(`Score: ${score}`, 10, 30);
     }
 
     function gameLoop() {
-        if (gameOver) return;
+        if (gameOver) {
+            context.fillStyle = 'white';
+            context.font = '40px Arial';
+            context.fillText('Game Over!', canvas.width / 2 - 80, canvas.height / 2);
+            return;
+        }
 
         // Freeze activated when the score reaches multiples of 300
         if (score >= 300 && score % 300 === 0 && !isFrozen) {
             isFrozen = true;
             freezeTimer = 300;
-            alert("Freeze! The game is frozen for a moment.");
+            assets.freezeSound.play();
         }
 
         drawGameObjects();
@@ -170,10 +233,20 @@ window.onload = function () {
     }
 
     function startGame() {
-        // Start the background music and game loop
         assets.backgroundMusic.loop = true;
+        assets.backgroundMusic.play();
         alert("Warning: The game will freeze at multiples of 300!");
         setInterval(spawnObjects, 1000);
         gameLoop();
+    }
+
+    function lineCircleIntersection(x1, y1, x2, y2, cx, cy, r) {
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const a = dx * dx + dy * dy;
+        const b = 2 * (dx * (x1 - cx) + dy * (y1 - cy));
+        const c = (x1 - cx) * (x1 - cx) + (y1 - cy) * (y1 - cy) - r * r;
+        const discriminant = b * b - 4 * a * c;
+        return discriminant >= 0;
     }
 };
