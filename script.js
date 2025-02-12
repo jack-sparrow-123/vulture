@@ -108,6 +108,7 @@ window.onload = function () {
     }
 
     function activateLaser() {
+        console.log("Laser Activated");
         if (!laserActive && !isFrozen) {
             laserActive = true;
             assets.laserSound.loop = true;
@@ -118,6 +119,7 @@ window.onload = function () {
     }
 
     function deactivateLaser() {
+        console.log("Laser Deactivated");
         if (laserActive) {
             laserActive = false;
             assets.laserSound.pause();
@@ -296,6 +298,7 @@ window.onload = function () {
             if (!gameOverSoundPlayed) {
                 assets.gameOverSound.play();
                 gameOverSoundPlayed = true;
+                alert("Game Over!");
             }
             drawGameObjects();
             return;
@@ -307,6 +310,7 @@ window.onload = function () {
     }
 
     function startGame() {
+        alert("Game Started!");
         assets.backgroundMusic.loop = true;
         setInterval(spawnObjects, 1000);
         gameLoop();
