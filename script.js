@@ -10,6 +10,7 @@ window.onload = function () {
         player: new Image(),
         drone: new Image(),
         blackDrone: new Image(),
+        snowDrone: new Image(), // New snow-covered drone
         bomb: new Image(),
         explosion: new Image(),
         snowflake: new Image(),
@@ -23,6 +24,7 @@ window.onload = function () {
         player: 'gun2.png.png',
         drone: 'drone2.png.png',
         blackDrone: 'blackdrone.png.png',
+        snowDrone: 'snowdrone.png.png', // Path for snow-covered drone
         bomb: 'bomb.png.png',
         explosion: 'explosion.png.png',
         snowflake: 'snowflake.png.png'
@@ -31,7 +33,7 @@ window.onload = function () {
     let loadedImages = 0;
     let totalImages = Object.keys(imagePaths).length;
     let player = { x: canvas.width / 2, y: canvas.height / 2, size: 60, angle: 0 };
-    let drones = [], blackDrones = [], bombs = [], explosions = [], snowflakes = [], score = 0;
+    let drones = [], blackDrones = [], snowDrones = [], bombs = [], explosions = [], snowflakes = [], score = 0;
     let isAudioEnabled = false;
     let gameOver = false;
     let gameOverSoundPlayed = false;
@@ -114,23 +116,31 @@ window.onload = function () {
         const laserEndX = player.x + Math.cos(player.angle) * canvas.width * 2;
         const laserEndY = player.y + Math.sin(player.angle) * canvas.width * 2;
 
-        [drones, blackDrones, bombs].forEach((arr, ai) => {
+        [drones, blackDrones, snowDrones, bombs].forEach((arr, ai) => {
             for (let i = arr.length - 1; i >= 0; i--) {
                 const obj = arr[i];
                 if (lineCircleIntersection(player.x, player.y, laserEndX, laserEndY, obj.x, obj.y, 25)) {
-                    explosions.push({ x: obj.x, y: obj.y, timer: 30 });
-                    arr.splice(i, 1);
-
-                    if (ai === 0) {
-                        score += 10;
-                    } else {
+                    if (ai === 2) { // Snow-covered drone
                         gameOver = true;
                         if (!gameOverSoundPlayed) {
                             assets.gameOverSound.play();
                             gameOverSoundPlayed = true;
                         }
+                        explosions.push({ x: obj.x, y: obj.y, timer: 30, isSnowExplosion: true });
+                    } else {
+                        explosions.push({ x: obj.x, y: obj.y, timer: 30, isSnowExplosion: false });
+                        if (ai === 0) {
+                            score += 10;
+                        } else if (ai === 1) {
+                            gameOver = true;
+                            if (!gameOverSoundPlayed) {
+                                assets.gameOverSound.play();
+                                gameOverSoundPlayed = true;
+                            }
+                        }
                     }
 
+                    arr.splice(i, 1);
                     assets.explosionSound.currentTime = 0;
                     assets.explosionSound.play();
 
@@ -143,10 +153,13 @@ window.onload = function () {
             }
         });
 
-        // Trigger freezing effect when score reaches 200
-        if (score >= 200 && !isFrozen) {
+        // Trigger freezing effect at specific scores
+        if ((score >= 300 && score < 350) || (score >= 600 && score < 650)) {
             isFrozen = true;
             freezeTimer = 120; // Freeze for 2 seconds (120 frames at 60 FPS)
+        } else {
+            isFrozen = false;
+            freezeEffectAlpha = 0;
         }
     }
 
@@ -176,6 +189,7 @@ window.onload = function () {
         if (score >= 50) speedMultiplier = 1.5;
         if (Math.random() < 0.3) blackDrones.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 2 * speedMultiplier });
         if (Math.random() < 0.2) bombs.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 2 * speedMultiplier });
+        if (score >= 600 && Math.random() < 0.2) snowDrones.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 3 + 3 * speedMultiplier });
         snowflakes.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 1, size: Math.random() * 10 + 5 });
     }
 
@@ -190,13 +204,14 @@ window.onload = function () {
         context.drawImage(assets.player, -player.size / 2, -player.size / 2, player.size, player.size);
         context.restore();
 
-        [drones, blackDrones, bombs, snowflakes].forEach((arr, index) => {
+        [drones, blackDrones, snowDrones, bombs, snowflakes].forEach((arr, index) => {
             arr.forEach(obj => {
                 if (!isFrozen) obj.y += obj.speed;
-                if (index === 3) {
+                if (index === 4) {
                     context.drawImage(assets.snowflake, obj.x, obj.y, obj.size, obj.size);
                 } else {
-                    context.drawImage(assets[index === 0 ? 'drone' : index === 1 ? 'blackDrone' : 'bomb'], obj.x, obj.y, 50, 50);
+                    const imageKey = index === 0 ? 'drone' : index === 1 ? 'blackDrone' : index === 2 ? 'snowDrone' : 'bomb';
+                    context.drawImage(assets[imageKey], obj.x, obj.y, 50, 50);
                 }
             });
         });
@@ -213,7 +228,14 @@ window.onload = function () {
         }
 
         explosions.forEach((explosion, index) => {
-            context.drawImage(assets.explosion, explosion.x - 40, explosion.y - 40, 80, 80);
+            if (explosion.isSnowExplosion) {
+                context.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                context.beginPath();
+                context.arc(explosion.x, explosion.y, 40, 0, Math.PI * 2);
+                context.fill();
+            } else {
+                context.drawImage(assets.explosion, explosion.x - 40, explosion.y - 40, 80, 80);
+            }
             if (--explosion.timer <= 0) explosions.splice(index, 1);
         });
 
