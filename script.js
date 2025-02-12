@@ -21,9 +21,13 @@ window.onload = function () {
         gameOverSound: new Audio('gameover.mp3')
     };
 
-    // Preload laser sound
-    assets.laserSound.preload = 'auto';
-    assets.laserSound.load();
+    // Preload sounds
+    assets.explosionSound.preload = 'auto';
+    assets.explosionSound.load();
+    assets.snowExplosionSound.preload = 'auto';
+    assets.snowExplosionSound.load();
+    assets.gameOverSound.preload = 'auto';
+    assets.gameOverSound.load();
 
     const imagePaths = {
         player: 'gun2.png.png',
@@ -127,8 +131,6 @@ window.onload = function () {
         }
     }
 
-  
-
     function checkLaserCollisions() {
         if (!laserActive || isFrozen) return;
 
@@ -170,8 +172,7 @@ window.onload = function () {
                 }
             }
         });
-
-   
+    }
 
     function lineCircleIntersection(x1, y1, x2, y2, cx, cy, r) {
         const dx = x2 - x1;
@@ -291,7 +292,7 @@ window.onload = function () {
     }
 
     function startGame() {
-        alert("Game freezes as score increases become 300 !");
+        alert("Game freezes as score increases to 300!");
         assets.backgroundMusic.loop = true;
         setInterval(spawnObjects, 1000);
         gameLoop();
