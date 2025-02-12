@@ -252,7 +252,7 @@ window.onload = function () {
 
         context.fillStyle = 'white';
         context.font = '20px Arial';
-        context.fillText(`Score: ${score}`, 20, 30);
+        context.fillText(Score: ${score}, 20, 30);
 
         if (gameOver) {
             context.fillStyle = 'red';
@@ -263,7 +263,7 @@ window.onload = function () {
 
         if (isFrozen) {
             freezeEffectAlpha = Math.min(freezeEffectAlpha + 0.02, 0.7);
-            context.fillStyle = `rgba(173, 216, 230, ${freezeEffectAlpha})`;
+            context.fillStyle = rgba(173, 216, 230, ${freezeEffectAlpha});
             context.fillRect(0, 0, canvas.width, canvas.height);
         }
     }
@@ -308,7 +308,7 @@ window.onload = function () {
     }
 
     function startGame() {
-        alert("Game freezes at multiples of 300 and stops at 600!");
+         alert("Game freezes at multiples of 300 and stops at 600!");
         assets.backgroundMusic.loop = true;
         setInterval(spawnObjects, 1000);
         gameLoop();
