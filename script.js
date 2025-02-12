@@ -14,8 +14,9 @@ window.onload = function () {
         bomb: new Image(),
         explosion: new Image(),
         snowflake: new Image(),
-        laserSound: new Audio('laser-shot-.mp3'),
-        explosionSound: new Audio('small-explosion-129477.mp3'),
+        laserSound: new Audio('laser-shot-.mp3'), // Laser sound
+        explosionSound: new Audio('small-explosion-129477.mp3'), // Regular explosion sound
+        snowExplosionSound: new Audio('snow-explosion.mp3'), // Snow drone explosion sound
         backgroundMusic: new Audio('lonely-winter-breeze-36867.mp3'),
         gameOverSound: new Audio('gameover.mp3')
     };
@@ -101,13 +102,17 @@ window.onload = function () {
     function activateLaser() {
         if (!laserActive && !isFrozen) {
             laserActive = true;
-            assets.laserSound.currentTime = 0;
+            assets.laserSound.loop = true; // Loop the laser sound
             assets.laserSound.play();
         }
     }
 
     function deactivateLaser() {
-        laserActive = false;
+        if (laserActive) {
+            laserActive = false;
+            assets.laserSound.pause();
+            assets.laserSound.currentTime = 0; // Reset the laser sound
+        }
     }
 
     function checkLaserCollisions() {
@@ -127,6 +132,8 @@ window.onload = function () {
                             gameOverSoundPlayed = true;
                         }
                         explosions.push({ x: obj.x, y: obj.y, timer: 30, isSnowExplosion: true });
+                        assets.snowExplosionSound.currentTime = 0;
+                        assets.snowExplosionSound.play(); // Play snow explosion sound
                     } else {
                         explosions.push({ x: obj.x, y: obj.y, timer: 30, isSnowExplosion: false });
                         if (ai === 0) {
@@ -138,11 +145,11 @@ window.onload = function () {
                                 gameOverSoundPlayed = true;
                             }
                         }
+                        assets.explosionSound.currentTime = 0;
+                        assets.explosionSound.play(); // Play regular explosion sound
                     }
 
                     arr.splice(i, 1);
-                    assets.explosionSound.currentTime = 0;
-                    assets.explosionSound.play();
 
                     if (laserActive) {
                         assets.laserSound.pause();
