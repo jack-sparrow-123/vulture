@@ -10,22 +10,26 @@ window.onload = function () {
         player: new Image(),
         drone: new Image(),
         blackDrone: new Image(),
-        snowDrone: new Image(), // New snow-covered drone
+        snowDrone: new Image(),
         bomb: new Image(),
         explosion: new Image(),
         snowflake: new Image(),
-        laserSound: new Audio('laser-shot-.mp3'), // Laser sound
-        explosionSound: new Audio('small-explosion-129477.mp3'), // Regular explosion sound
-        snowExplosionSound: new Audio('snow-explosion.mp3'), // Snow drone explosion sound
+        laserSound: new Audio('laser-shot-.mp3'), // Ensure this file is optimized
+        explosionSound: new Audio('small-explosion-129477.mp3'),
+        snowExplosionSound: new Audio('snow-explosion.mp3'),
         backgroundMusic: new Audio('lonely-winter-breeze-36867.mp3'),
         gameOverSound: new Audio('gameover.mp3')
     };
+
+    // Preload laser sound to avoid lag
+    assets.laserSound.preload = 'auto';
+    assets.laserSound.load();
 
     const imagePaths = {
         player: 'gun2.png.png',
         drone: 'drone2.png.png',
         blackDrone: 'blackdrone.png.png',
-        snowDrone: 'snowdrone.png.png', // Path for snow-covered drone
+        snowDrone: 'snowdrone.png.png',
         bomb: 'bomb.png.png',
         explosion: 'explosion.png.png',
         snowflake: 'snowflake.png.png'
@@ -42,7 +46,7 @@ window.onload = function () {
     let laserActive = false;
     let isFrozen = false;
     let freezeTimer = 0;
-    let freezeEffectAlpha = 0; // Alpha value for the frosty overlay
+    let freezeEffectAlpha = 0;
 
     Object.keys(imagePaths).forEach((key) => {
         assets[key].src = imagePaths[key];
@@ -59,13 +63,13 @@ window.onload = function () {
     document.addEventListener('mousedown', activateLaser);
     document.addEventListener('mouseup', deactivateLaser);
     document.addEventListener('touchstart', (e) => {
-        e.preventDefault(); // Prevent default touch behavior
+        e.preventDefault();
         activateLaser();
     }, { passive: false });
     document.addEventListener('touchend', deactivateLaser, { passive: false });
     canvas.addEventListener('mousemove', aimGun);
     canvas.addEventListener('touchmove', (e) => {
-        e.preventDefault(); // Prevent default touch behavior
+        e.preventDefault();
         movePlayerTouch(e);
     }, { passive: false });
 
@@ -102,8 +106,8 @@ window.onload = function () {
     function activateLaser() {
         if (!laserActive && !isFrozen) {
             laserActive = true;
-            assets.laserSound.loop = true; // Loop the laser sound
-            assets.laserSound.play();
+            assets.laserSound.loop = true;
+            assets.laserSound.play().catch(error => console.error("Laser sound failed to play:", error));
         }
     }
 
@@ -111,7 +115,7 @@ window.onload = function () {
         if (laserActive) {
             laserActive = false;
             assets.laserSound.pause();
-            assets.laserSound.currentTime = 0; // Reset the laser sound
+            assets.laserSound.currentTime = 0;
         }
     }
 
@@ -125,28 +129,25 @@ window.onload = function () {
             for (let i = arr.length - 1; i >= 0; i--) {
                 const obj = arr[i];
                 if (lineCircleIntersection(player.x, player.y, laserEndX, laserEndY, obj.x, obj.y, 25)) {
-                    if (ai === 2) { // Snow-covered drone
+                    if (ai === 2) {
                         gameOver = true;
                         if (!gameOverSoundPlayed) {
                             assets.gameOverSound.play();
                             gameOverSoundPlayed = true;
                         }
                         explosions.push({ x: obj.x, y: obj.y, timer: 30, isSnowExplosion: true });
-                        assets.snowExplosionSound.currentTime = 0;
-                        assets.snowExplosionSound.play(); // Play snow explosion sound
+                        assets.snowExplosionSound.play();
                     } else {
                         explosions.push({ x: obj.x, y: obj.y, timer: 30, isSnowExplosion: false });
-                        if (ai === 0) {
-                            score += 10;
-                        } else if (ai === 1) {
+                        if (ai === 0) score += 10;
+                        else if (ai === 1) {
                             gameOver = true;
                             if (!gameOverSoundPlayed) {
                                 assets.gameOverSound.play();
                                 gameOverSoundPlayed = true;
                             }
                         }
-                        assets.explosionSound.currentTime = 0;
-                        assets.explosionSound.play(); // Play regular explosion sound
+                        assets.explosionSound.play();
                     }
 
                     arr.splice(i, 1);
@@ -162,8 +163,11 @@ window.onload = function () {
 
         // Trigger freezing effect at specific scores
         if ((score >= 300 && score < 350) || (score >= 600 && score < 650)) {
-            isFrozen = true;
-            freezeTimer = 120; // Freeze for 2 seconds (120 frames at 60 FPS)
+            if (!isFrozen) {
+                isFrozen = true;
+                freezeTimer = 120;
+                alert("Game freezes temporarily as your score increases!"); // Alert user about freeze
+            }
         } else {
             isFrozen = false;
             freezeEffectAlpha = 0;
@@ -257,10 +261,9 @@ window.onload = function () {
             context.fillText('Game Over', canvas.width / 2, canvas.height / 2);
         }
 
-        // Draw frosty overlay during freeze
         if (isFrozen) {
-            freezeEffectAlpha = Math.min(freezeEffectAlpha + 0.02, 0.7); // Gradually increase alpha
-            context.fillStyle = `rgba(173, 216, 230, ${freezeEffectAlpha})`; // Light blue frosty effect
+            freezeEffectAlpha = Math.min(freezeEffectAlpha + 0.02, 0.7);
+            context.fillStyle = `rgba(173, 216, 230, ${freezeEffectAlpha})`;
             context.fillRect(0, 0, canvas.width, canvas.height);
         }
     }
@@ -268,7 +271,7 @@ window.onload = function () {
     function updateFreeze() {
         if (isFrozen && --freezeTimer <= 0) {
             isFrozen = false;
-            freezeEffectAlpha = 0; // Reset alpha
+            freezeEffectAlpha = 0;
         }
     }
 
