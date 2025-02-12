@@ -22,7 +22,7 @@ window.onload = function () {
         gameOverSound: new Audio('gameover.mp3')
     };
 
-    assets.iceEffect.src = 'ice-overlay.png';
+    assets.iceEffect.src = 'iceoverlay.png';
     assets.iceEffect.onload = () => console.log("Ice effect loaded");
     
     const imagePaths = {
