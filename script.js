@@ -14,7 +14,7 @@ window.onload = function () {
         bomb: new Image(),
         explosion: new Image(),
         iceEffect: new Image(),
-        snowflake: new Image(), // Add snowflake image
+        snowflake: new Image(),
         laserSound: new Audio('laser-shot-.mp3'),
         explosionSound: new Audio('small-explosion-129477.mp3'),
         snowExplosionSound: new Audio('snow-explosion.mp3'),
@@ -33,7 +33,7 @@ window.onload = function () {
         snowDrone: 'snowdrone.png.png',
         bomb: 'bomb.png.png',
         explosion: 'explosion.png.png',
-        snowflake: 'snowflake.png.png' // Add snowflake image path
+        snowflake: 'snowflake.png.png'
     };
 
     let loadedImages = 0;
@@ -102,7 +102,7 @@ window.onload = function () {
                 y: y,
                 dx: Math.cos(angle) * speed,
                 dy: Math.sin(angle) * speed,
-                size: Math.random() * 10 + 5, // Random size for snowflakes
+                size: Math.random() * 10 + 5,
                 alpha: 1
             });
         }
@@ -123,9 +123,9 @@ window.onload = function () {
             snowflakes.push({
                 x: Math.random() * canvas.width,
                 y: 0,
-                dx: (Math.random() - 0.5) * 2, // Random horizontal movement
-                dy: Math.random() * 2 + 1, // Random vertical speed
-                size: Math.random() * 10 + 5, // Random size
+                dx: (Math.random() - 0.5) * 2,
+                dy: Math.random() * 2 + 1,
+                size: Math.random() * 10 + 5,
                 alpha: 1
             });
         }
