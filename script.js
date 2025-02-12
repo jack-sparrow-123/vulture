@@ -286,10 +286,19 @@ window.onload = function () {
             return;
         }
 
-        // Freeze game when score reaches 300
-        if (score >= 300 && !isFrozen) {
+        // Freeze game when score reaches multiples of 300
+        if (score % 300 === 0 && score !== 0 && !isFrozen) {
             isFrozen = true;
             freezeTimer = 300; // Freeze for 5 seconds (300 frames at 60 FPS)
+        }
+
+        // Stop game when score reaches 600
+        if (score >= 600) {
+            gameOver = true;
+            if (!gameOverSoundPlayed) {
+                assets.gameOverSound.play();
+                gameOverSoundPlayed = true;
+            }
         }
 
         drawGameObjects();
@@ -299,7 +308,7 @@ window.onload = function () {
     }
 
     function startGame() {
-        alert("Game freezes as score increases to 300!");
+        alert("Game freezes at multiples of 300 and stops at 600!");
         assets.backgroundMusic.loop = true;
         setInterval(spawnObjects, 1000);
         gameLoop();
