@@ -285,6 +285,13 @@ window.onload = function () {
             drawGameObjects();
             return;
         }
+
+        // Freeze game when score reaches 300
+        if (score >= 300 && !isFrozen) {
+            isFrozen = true;
+            freezeTimer = 300; // Freeze for 5 seconds (300 frames at 60 FPS)
+        }
+
         drawGameObjects();
         checkLaserCollisions();
         updateFreeze();
