@@ -39,6 +39,7 @@ window.onload = function () {
     let laserActive = false;
     let isFrozen = false;
     let freezeTimer = 0;
+    let freezeEffectAlpha = 0; // Alpha value for the frosty overlay
 
     Object.keys(imagePaths).forEach((key) => {
         assets[key].src = imagePaths[key];
@@ -73,7 +74,7 @@ window.onload = function () {
     }
 
     function movePlayer(e) {
-        if (gameOver) return;
+        if (gameOver || isFrozen) return;
         if (e.code === 'ArrowLeft') player.x -= 10;
         if (e.code === 'ArrowRight') player.x += 10;
         if (e.code === 'ArrowUp') player.y -= 10;
@@ -81,14 +82,14 @@ window.onload = function () {
     }
 
     function movePlayerTouch(e) {
-        if (gameOver) return;
+        if (gameOver || isFrozen) return;
         const rect = canvas.getBoundingClientRect();
         player.x = (e.touches[0].clientX - rect.left) * dpr;
         player.y = (e.touches[0].clientY - rect.top) * dpr;
     }
 
     function aimGun(e) {
-        if (gameOver) return;
+        if (gameOver || isFrozen) return;
         const rect = canvas.getBoundingClientRect();
         const mouseX = (e.clientX - rect.left) * dpr;
         const mouseY = (e.clientY - rect.top) * dpr;
@@ -96,7 +97,7 @@ window.onload = function () {
     }
 
     function activateLaser() {
-        if (!laserActive) {
+        if (!laserActive && !isFrozen) {
             laserActive = true;
             assets.laserSound.currentTime = 0;
             assets.laserSound.play();
@@ -108,7 +109,7 @@ window.onload = function () {
     }
 
     function checkLaserCollisions() {
-        if (!laserActive) return;
+        if (!laserActive || isFrozen) return;
 
         const laserEndX = player.x + Math.cos(player.angle) * canvas.width * 2;
         const laserEndY = player.y + Math.sin(player.angle) * canvas.width * 2;
@@ -141,6 +142,12 @@ window.onload = function () {
                 }
             }
         });
+
+        // Trigger freezing effect when score reaches 200
+        if (score >= 200 && !isFrozen) {
+            isFrozen = true;
+            freezeTimer = 120; // Freeze for 2 seconds (120 frames at 60 FPS)
+        }
     }
 
     function lineCircleIntersection(x1, y1, x2, y2, cx, cy, r) {
@@ -221,9 +228,18 @@ window.onload = function () {
             context.fillText('Game Over', canvas.width / 2, canvas.height / 2);
         }
 
+        // Draw frosty overlay during freeze
         if (isFrozen) {
-            context.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            freezeEffectAlpha = Math.min(freezeEffectAlpha + 0.02, 0.7); // Gradually increase alpha
+            context.fillStyle = `rgba(173, 216, 230, ${freezeEffectAlpha})`; // Light blue frosty effect
             context.fillRect(0, 0, canvas.width, canvas.height);
+        }
+    }
+
+    function updateFreeze() {
+        if (isFrozen && --freezeTimer <= 0) {
+            isFrozen = false;
+            freezeEffectAlpha = 0; // Reset alpha
         }
     }
 
@@ -238,32 +254,13 @@ window.onload = function () {
         }
         drawGameObjects();
         checkLaserCollisions();
+        updateFreeze();
         requestAnimationFrame(gameLoop);
     }
 
     function startGame() {
         assets.backgroundMusic.loop = true;
         setInterval(spawnObjects, 1000);
-        setInterval(() => {
-            if (!gameOver && !isFrozen) {
-                isFrozen = true;
-                freezeTimer = 120; // Freeze for 2 seconds (120 frames at 60 FPS)
-            }
-        }, 10000); // Freeze every 10 seconds
         gameLoop();
     }
-
-    function updateFreeze() {
-        if (isFrozen && --freezeTimer <= 0) {
-            isFrozen = false;
-        }
-    }
-
-    function mainLoop() {
-        updateFreeze();
-        gameLoop();
-        requestAnimationFrame(mainLoop);
-    }
-
-    mainLoop();
 };
