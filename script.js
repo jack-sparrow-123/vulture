@@ -14,7 +14,7 @@ window.onload = function () {
         bomb: new Image(),
         explosion: new Image(),
         snowflake: new Image(),
-        laserSound: new Audio('laser-shot-.mp3'), // Ensure this file is optimized
+        laserSound: new Audio('laser-shot-.mp3'), 
         explosionSound: new Audio('small-explosion-129477.mp3'),
         snowExplosionSound: new Audio('snow-explosion.mp3'),
         backgroundMusic: new Audio('lonely-winter-breeze-36867.mp3'),
@@ -308,8 +308,8 @@ window.onload = function () {
     }
 
     function startGame() {
-        alert("Game freezes at multiples of 300 and stops at 600!");
         assets.backgroundMusic.loop = true;
         setInterval(spawnObjects, 1000);
         gameLoop();
     }
+};
