@@ -127,15 +127,7 @@ window.onload = function () {
         }
     }
 
-    function showFreezeMessage(message) {
-        context.fillStyle = 'yellow';
-        context.font = '30px Arial';
-        context.textAlign = 'center';
-        context.fillText(message, canvas.width / 2, canvas.height / 2);
-        setTimeout(() => {
-            context.clearRect(0, canvas.height / 2 - 30, canvas.width, 60);
-        }, 2000);
-    }
+  
 
     function checkLaserCollisions() {
         if (!laserActive || isFrozen) return;
@@ -179,18 +171,7 @@ window.onload = function () {
             }
         });
 
-        // Trigger freezing effect at specific scores
-        if ((score >= 300 && score < 350) || (score >= 600 && score < 650)) {
-            if (!isFrozen) {
-                isFrozen = true;
-                freezeTimer = 120;
-                showFreezeMessage("Game freezes temporarily as your score increases!");
-            }
-        } else {
-            isFrozen = false;
-            freezeEffectAlpha = 0;
-        }
-    }
+   
 
     function lineCircleIntersection(x1, y1, x2, y2, cx, cy, r) {
         const dx = x2 - x1;
@@ -310,7 +291,7 @@ window.onload = function () {
     }
 
     function startGame() {
-        alert("Game Started!");
+        alert("Game freezes as score increases become 300 !");
         assets.backgroundMusic.loop = true;
         setInterval(spawnObjects, 1000);
         gameLoop();
