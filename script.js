@@ -308,9 +308,8 @@ window.onload = function () {
     }
 
     function startGame() {
-         alert("Game freezes at multiples of 300 and stops at 600!");
+        alert("Game freezes at multiples of 300 and stops at 600!");
         assets.backgroundMusic.loop = true;
         setInterval(spawnObjects, 1000);
         gameLoop();
     }
-};
