@@ -1,8 +1,10 @@
 window.onload = function () {
     const canvas = document.getElementById("gameCanvas");
     const context = canvas.getContext("2d");
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = window.innerWidth * dpr;
+    canvas.height = window.innerHeight * dpr;
+    context.scale(dpr, dpr);
 
     const assets = {
         player: new Image(),
@@ -35,6 +37,8 @@ window.onload = function () {
     let gameOverSoundPlayed = false;
     let speedMultiplier = 1;
     let laserActive = false;
+    let isFrozen = false;
+    let freezeTimer = 0;
 
     Object.keys(imagePaths).forEach((key) => {
         assets[key].src = imagePaths[key];
@@ -50,10 +54,16 @@ window.onload = function () {
     document.addEventListener('keydown', movePlayer);
     document.addEventListener('mousedown', activateLaser);
     document.addEventListener('mouseup', deactivateLaser);
-    document.addEventListener('touchstart', activateLaser);
-    document.addEventListener('touchend', deactivateLaser);
+    document.addEventListener('touchstart', (e) => {
+        e.preventDefault(); // Prevent default touch behavior
+        activateLaser();
+    }, { passive: false });
+    document.addEventListener('touchend', deactivateLaser, { passive: false });
     canvas.addEventListener('mousemove', aimGun);
-    canvas.addEventListener('touchmove', movePlayerTouch);
+    canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault(); // Prevent default touch behavior
+        movePlayerTouch(e);
+    }, { passive: false });
 
     function enableAudio() {
         if (!isAudioEnabled) {
@@ -72,22 +82,23 @@ window.onload = function () {
 
     function movePlayerTouch(e) {
         if (gameOver) return;
-        player.x = e.touches[0].clientX;
-        player.y = e.touches[0].clientY;
+        const rect = canvas.getBoundingClientRect();
+        player.x = (e.touches[0].clientX - rect.left) * dpr;
+        player.y = (e.touches[0].clientY - rect.top) * dpr;
     }
 
     function aimGun(e) {
         if (gameOver) return;
         const rect = canvas.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
+        const mouseX = (e.clientX - rect.left) * dpr;
+        const mouseY = (e.clientY - rect.top) * dpr;
         player.angle = Math.atan2(mouseY - player.y, mouseX - player.x);
     }
 
     function activateLaser() {
         if (!laserActive) {
             laserActive = true;
-            assets.laserSound.currentTime = 0; // Reset sound to start
+            assets.laserSound.currentTime = 0;
             assets.laserSound.play();
         }
     }
@@ -99,11 +110,9 @@ window.onload = function () {
     function checkLaserCollisions() {
         if (!laserActive) return;
 
-        // Calculate the end point of the laser beam
         const laserEndX = player.x + Math.cos(player.angle) * canvas.width * 2;
         const laserEndY = player.y + Math.sin(player.angle) * canvas.width * 2;
 
-        // Check collisions with drones, black drones, and bombs
         [drones, blackDrones, bombs].forEach((arr, ai) => {
             for (let i = arr.length - 1; i >= 0; i--) {
                 const obj = arr[i];
@@ -111,22 +120,19 @@ window.onload = function () {
                     explosions.push({ x: obj.x, y: obj.y, timer: 30 });
                     arr.splice(i, 1);
 
-                    // Increase score or trigger game over
                     if (ai === 0) {
-                        score += 10; // Score for drones
+                        score += 10;
                     } else {
-                        gameOver = true; // Game over for black drones and bombs
+                        gameOver = true;
                         if (!gameOverSoundPlayed) {
                             assets.gameOverSound.play();
                             gameOverSoundPlayed = true;
                         }
                     }
 
-                    // Play explosion sound immediately
-                    assets.explosionSound.currentTime = 0; // Reset sound position to ensure it plays from the beginning
+                    assets.explosionSound.currentTime = 0;
                     assets.explosionSound.play();
 
-                    // Stop the laser sound immediately when hitting a target
                     if (laserActive) {
                         assets.laserSound.pause();
                         assets.laserSound.currentTime = 0;
@@ -149,7 +155,7 @@ window.onload = function () {
 
         const discriminant = b * b - 4 * a * c;
 
-        if (discriminant < 0) return false; // No intersection
+        if (discriminant < 0) return false;
 
         const t1 = (-b - Math.sqrt(discriminant)) / (2 * a);
         const t2 = (-b + Math.sqrt(discriminant)) / (2 * a);
@@ -158,6 +164,7 @@ window.onload = function () {
     }
 
     function spawnObjects() {
+        if (isFrozen) return;
         drones.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 1 * speedMultiplier });
         if (score >= 50) speedMultiplier = 1.5;
         if (Math.random() < 0.3) blackDrones.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 2 * speedMultiplier });
@@ -170,17 +177,15 @@ window.onload = function () {
         context.fillStyle = '#001F3F';
         context.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw player
         context.save();
         context.translate(player.x, player.y);
         context.rotate(player.angle);
         context.drawImage(assets.player, -player.size / 2, -player.size / 2, player.size, player.size);
         context.restore();
 
-        // Draw drones, black drones, bombs, and snowflakes
         [drones, blackDrones, bombs, snowflakes].forEach((arr, index) => {
             arr.forEach(obj => {
-                obj.y += obj.speed;
+                if (!isFrozen) obj.y += obj.speed;
                 if (index === 3) {
                     context.drawImage(assets.snowflake, obj.x, obj.y, obj.size, obj.size);
                 } else {
@@ -189,7 +194,6 @@ window.onload = function () {
             });
         });
 
-        // Draw laser beam if active
         if (laserActive) {
             const laserEndX = player.x + Math.cos(player.angle) * canvas.width * 2;
             const laserEndY = player.y + Math.sin(player.angle) * canvas.width * 2;
@@ -201,23 +205,25 @@ window.onload = function () {
             context.stroke();
         }
 
-        // Draw explosions
         explosions.forEach((explosion, index) => {
             context.drawImage(assets.explosion, explosion.x - 40, explosion.y - 40, 80, 80);
             if (--explosion.timer <= 0) explosions.splice(index, 1);
         });
 
-        // Draw score
         context.fillStyle = 'white';
         context.font = '20px Arial';
         context.fillText(`Score: ${score}`, 20, 30);
 
-        // Draw "Game Over" message
         if (gameOver) {
             context.fillStyle = 'red';
             context.font = '60px Arial';
             context.textAlign = 'center';
             context.fillText('Game Over', canvas.width / 2, canvas.height / 2);
+        }
+
+        if (isFrozen) {
+            context.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            context.fillRect(0, 0, canvas.width, canvas.height);
         }
     }
 
@@ -231,18 +237,33 @@ window.onload = function () {
             return;
         }
         drawGameObjects();
-        checkLaserCollisions(); // Check collisions every frame
+        checkLaserCollisions();
         requestAnimationFrame(gameLoop);
     }
 
     function startGame() {
         assets.backgroundMusic.loop = true;
         setInterval(spawnObjects, 1000);
+        setInterval(() => {
+            if (!gameOver && !isFrozen) {
+                isFrozen = true;
+                freezeTimer = 120; // Freeze for 2 seconds (120 frames at 60 FPS)
+            }
+        }, 10000); // Freeze every 10 seconds
         gameLoop();
     }
+
+    function updateFreeze() {
+        if (isFrozen && --freezeTimer <= 0) {
+            isFrozen = false;
+        }
+    }
+
+    function mainLoop() {
+        updateFreeze();
+        gameLoop();
+        requestAnimationFrame(mainLoop);
+    }
+
+    mainLoop();
 };
-
-
-
-
-
