@@ -42,7 +42,7 @@ window.onload = function () {
     let gameOver = false;
     let speedMultiplier = 1;
     let laserActive = false;
-    let isFrozen = false;
+    let isFrozen = true;  // Freeze starts at the beginning of the game
     let freezeTimer = 0;
     let freezeEffectAlpha = 0;
 
@@ -125,9 +125,11 @@ window.onload = function () {
     function gameLoop() {
         if (gameOver) return;
 
+        // Trigger freezing effect every time the score reaches a multiple of 300
         if (score >= 300 && score % 300 === 0 && !isFrozen) {
             isFrozen = true;
             freezeTimer = 300;
+            alert("Freeze activated! Score is now a multiple of 300!");
         }
 
         drawGameObjects();
