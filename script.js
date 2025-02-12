@@ -24,7 +24,7 @@ window.onload = function () {
 
     assets.iceEffect.src = 'iceoverlay.png';
     assets.iceEffect.onload = () => console.log("Ice effect loaded");
-    
+
     const imagePaths = {
         player: 'gun2.png.png',
         drone: 'drone2.png.png',
@@ -125,6 +125,7 @@ window.onload = function () {
     function gameLoop() {
         if (gameOver) return;
 
+        // Freeze activated when the score reaches multiples of 300
         if (score >= 300 && score % 300 === 0 && !isFrozen) {
             isFrozen = true;
             freezeTimer = 300;
@@ -138,6 +139,7 @@ window.onload = function () {
     }
 
     function startGame() {
+        // Start the background music and game loop
         assets.backgroundMusic.loop = true;
         setInterval(spawnObjects, 1000);
         gameLoop();
