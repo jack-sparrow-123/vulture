@@ -15,11 +15,9 @@ window.onload = function () {
         explosion: new Image(),
         snowflake: new Image(),
         iceEffect: new Image(),
-        frozenDroneExplosion: new Image(), // New explosion for frozen drones
         laserSound: new Audio('laser-shot-.mp3'),
         explosionSound: new Audio('small-explosion-129477.mp3'),
         snowExplosionSound: new Audio('snow-explosion.mp3'),
-        frozenDroneExplosionSound: new Audio('frozen-drone-explosion.mp3'), // New sound for frozen drone explosions
         backgroundMusic: new Audio('lonely-winter-breeze-36867.mp3'),
         gameOverSound: new Audio('gameover.mp3')
     };
@@ -34,8 +32,7 @@ window.onload = function () {
         snowDrone: 'snowdrone.png.png',
         bomb: 'bomb.png.png',
         explosion: 'explosion.png.png',
-        snowflake: 'snowflake.png.png',
-    
+        snowflake: 'snowflake.png.png'
     };
 
     let loadedImages = 0;
@@ -73,9 +70,11 @@ window.onload = function () {
                         // If it's a snow drone and it's frozen
                         if (obj.frozen) {
                             explosions.push({ x: obj.x, y: obj.y, timer: 30, isSnowExplosion: true });
-                            assets.frozenDroneExplosionSound.play(); // Play the frozen drone explosion sound
+                            assets.snowExplosionSound.play(); // Play the snow explosion sound
                             // Create snow effect explosion
-                            snowflakes.push({ x: obj.x, y: obj.y, speed: Math.random() * 2 + 1, size: Math.random() * 10 + 5 });
+                            for (let j = 0; j < 50; j++) {
+                                snowflakes.push({ x: obj.x, y: obj.y, speed: Math.random() * 2 + 1, size: Math.random() * 10 + 5 });
+                            }
                         } else {
                             // If it's a snow drone but not frozen
                             explosions.push({ x: obj.x, y: obj.y, timer: 30, isSnowExplosion: true });
@@ -146,7 +145,10 @@ window.onload = function () {
         // Draw frozen drones explosion effect
         snowDrones.forEach(drone => {
             if (drone.frozen) {
-                context.drawImage(assets.frozenDroneExplosion, drone.x - 40, drone.y - 40, 80, 80);
+                context.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                context.beginPath();
+                context.arc(drone.x, drone.y, 40, 0, Math.PI * 2);
+                context.fill();
             }
         });
     }
