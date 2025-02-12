@@ -57,6 +57,60 @@ window.onload = function () {
         };
     });
 
+    // Touch and mouse controls
+    let touchStartX = 0, touchStartY = 0;
+    let isTouching = false;
+
+    canvas.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        isTouching = true;
+        const touch = e.touches[0];
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+        laserActive = true;
+    });
+
+    canvas.addEventListener("touchmove", (e) => {
+        e.preventDefault();
+        if (isTouching) {
+            const touch = e.touches[0];
+            const dx = touch.clientX - touchStartX;
+            const dy = touch.clientY - touchStartY;
+            player.angle = Math.atan2(dy, dx);
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+        }
+    });
+
+    canvas.addEventListener("touchend", (e) => {
+        e.preventDefault();
+        isTouching = false;
+        laserActive = false;
+    });
+
+    // Mouse controls
+    canvas.addEventListener("mousedown", (e) => {
+        isTouching = true;
+        touchStartX = e.clientX;
+        touchStartY = e.clientY;
+        laserActive = true;
+    });
+
+    canvas.addEventListener("mousemove", (e) => {
+        if (isTouching) {
+            const dx = e.clientX - touchStartX;
+            const dy = e.clientY - touchStartY;
+            player.angle = Math.atan2(dy, dx);
+            touchStartX = e.clientX;
+            touchStartY = e.clientY;
+        }
+    });
+
+    canvas.addEventListener("mouseup", () => {
+        isTouching = false;
+        laserActive = false;
+    });
+
     function checkLaserCollisions() {
         if (!laserActive || isFrozen) return;
 
