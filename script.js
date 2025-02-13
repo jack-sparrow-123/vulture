@@ -13,11 +13,11 @@ window.onload = function () {
         snowflake: new Image(),
         iceOverlay: new Image(),
         frozenDrone: new Image(),
-        laserSound: new Audio('attack-laser-128280.mp3'),
+        laserSound: new Audio('laser-shot-.mp3'),
         explosionSound: new Audio('small-explosion-129477.mp3'),
         backgroundMusic: new Audio('lonely-winter-breeze-36867.mp3'),
         gameOverSound: new Audio('gameover.mp3'),
-        freezingSound: new Audio('freezing-sound.mp3.mp3'),
+        freezingSound: new Audio('freeze-sound.mp3.mp3'),
         snowExplosionSound: new Audio('snow-explosion.mp3')
     };
 
@@ -28,8 +28,8 @@ window.onload = function () {
         bomb: 'bomb.png.png',
         explosion: 'explosion.png.png',
         snowflake: 'snowflake.png.png',
-        iceOverlay: 'ice-overlay.png',
-        frozenDrone: 'frozen-drone.png'
+        iceOverlay: 'iceoverlay.png',
+        frozenDrone: 'snowdrone.png.png'
     };
 
     let loadedImages = 0;
