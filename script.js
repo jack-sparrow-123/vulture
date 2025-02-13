@@ -268,11 +268,10 @@ window.onload = function () {
             context.globalAlpha = 1;
         }
 
-        // Draw score
-        context.fillStyle = 'white';
-        context.font = '20px Arial';
-        context.fillText(Score: ${score}, 10, 30);
-    }
+  // Draw score
+context.fillStyle = 'white';
+context.font = '20px Arial';
+context.fillText(`Score: ${score}`, 10, 30); // Fixed line
 
     // Game loop
     function gameLoop() {
