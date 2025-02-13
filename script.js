@@ -47,6 +47,7 @@ window.onload = function () {
     let freezeTimer = 0;
     let freezeEffectAlpha = 0;
 
+    // Load assets
     Object.keys(imagePaths).forEach((key) => {
         assets[key].src = imagePaths[key];
         assets[key].onload = () => {
@@ -54,6 +55,9 @@ window.onload = function () {
             if (loadedImages === totalImages) {
                 startGame();
             }
+        };
+        assets[key].onerror = () => {
+            console.error(`Failed to load asset: ${key}`);
         };
     });
 
@@ -111,6 +115,7 @@ window.onload = function () {
         laserActive = false;
     });
 
+    // Check collisions
     function checkLaserCollisions() {
         if (!laserActive || isFrozen) return;
 
@@ -147,6 +152,7 @@ window.onload = function () {
         });
     }
 
+    // Create snow explosion
     function createSnowExplosion(x, y) {
         for (let i = 0; i < 50; i++) {
             const angle = Math.random() * Math.PI * 2;
@@ -162,6 +168,7 @@ window.onload = function () {
         }
     }
 
+    // Spawn objects
     function spawnObjects() {
         if (isFrozen) return;
         drones.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 1 * speedMultiplier });
@@ -185,6 +192,7 @@ window.onload = function () {
         }
     }
 
+    // Update freeze effect
     function updateFreeze() {
         if (isFrozen && --freezeTimer <= 0) {
             isFrozen = false;
@@ -192,6 +200,7 @@ window.onload = function () {
         }
     }
 
+    // Draw game objects
     function drawGameObjects() {
         context.clearRect(0, 0, canvas.width, canvas.height);
         context.fillStyle = '#001F3F';
@@ -262,9 +271,10 @@ window.onload = function () {
         // Draw score
         context.fillStyle = 'white';
         context.font = '20px Arial';
-        context.fillText(`Score: ${score}`, 10, 30);
+        context.fillText(Score: ${score}, 10, 30);
     }
 
+    // Game loop
     function gameLoop() {
         if (gameOver) {
             context.fillStyle = 'white';
@@ -286,6 +296,7 @@ window.onload = function () {
         requestAnimationFrame(gameLoop);
     }
 
+    // Start game
     function startGame() {
         assets.backgroundMusic.loop = true;
         assets.backgroundMusic.play();
@@ -294,6 +305,7 @@ window.onload = function () {
         gameLoop();
     }
 
+    // Line-circle intersection
     function lineCircleIntersection(x1, y1, x2, y2, cx, cy, r) {
         const dx = x2 - x1;
         const dy = y2 - y1;
