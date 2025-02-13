@@ -54,7 +54,48 @@ window.onload = function () {
         assets[key].onerror = () => console.error(`Failed to load ${key}`);
     });
 
-    // Define drawGameObjects before gameLoop
+    // Define spawnObjects function
+    function spawnObjects() {
+        // Example: Spawn a drone at a random position
+        const drone = {
+            x: Math.random() * canvas.width,
+            y: -50, // Start above the canvas
+            speed: 2 * speedMultiplier
+        };
+        drones.push(drone);
+
+        // Example: Spawn a bomb at a random position
+        const bomb = {
+            x: Math.random() * canvas.width,
+            y: -50,
+            speed: 3 * speedMultiplier
+        };
+        bombs.push(bomb);
+
+        // Example: Spawn a snow drone at a random position
+        const snowDrone = {
+            x: Math.random() * canvas.width,
+            y: -50,
+            speed: 1.5 * speedMultiplier
+        };
+        snowDrones.push(snowDrone);
+    }
+
+    function startGame() {
+        if (gameStarted) return;
+        gameStarted = true;
+        assets.backgroundMusic.loop = true;
+        assets.backgroundMusic.play().catch(() => console.warn("Audio play blocked until user interacts."));
+        alert("Warning: The game will freeze at multiples of 300!");
+
+        setInterval(spawnObjects, 1000); // Call spawnObjects every second
+        gameLoop();
+    }
+
+    // Ensure game starts only when user interacts
+    document.addEventListener("click", startGame);
+    document.addEventListener("touchstart", startGame);
+
     function drawGameObjects() {
         context.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -107,24 +148,9 @@ window.onload = function () {
             assets.freezeSound.play();
         }
 
-        drawGameObjects(); // Now this will work
+        drawGameObjects();
         checkLaserCollisions();
         updateFreeze();
         requestAnimationFrame(gameLoop);
     }
-
-    function startGame() {
-        if (gameStarted) return;
-        gameStarted = true;
-        assets.backgroundMusic.loop = true;
-        assets.backgroundMusic.play().catch(() => console.warn("Audio play blocked until user interacts."));
-        alert("Warning: The game will freeze at multiples of 300!");
-
-        setInterval(spawnObjects, 1000);
-        gameLoop();
-    }
-
-    // Ensure game starts only when user interacts
-    document.addEventListener("click", startGame);
-    document.addEventListener("touchstart", startGame);
 };
