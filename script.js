@@ -52,7 +52,9 @@ window.onload = function () {
         assets[key].src = imagePaths[key];
         assets[key].onload = () => {
             loadedImages++;
+            console.log(`${key} loaded, ${loadedImages}/${totalImages}`);
             if (loadedImages === totalImages) {
+                console.log("All assets loaded, starting game...");
                 startGame();
             }
         };
@@ -268,10 +270,11 @@ window.onload = function () {
             context.globalAlpha = 1;
         }
 
-  // Draw score
-context.fillStyle = 'white';
-context.font = '20px Arial';
-context.fillText(`Score: ${score}`, 10, 30); // Fixed line
+        // Draw score
+        context.fillStyle = 'white';
+        context.font = '20px Arial';
+        context.fillText(`Score: ${score}`, 10, 30);
+    }
 
     // Game loop
     function gameLoop() {
