@@ -73,6 +73,29 @@ window.onload = function () {
     canvas.addEventListener('mousemove', aimGun);
     canvas.addEventListener('touchmove', movePlayerTouch);
 
+    // Add sound toggle functionality
+    const soundButton = document.getElementById('soundButton');
+    soundButton.addEventListener('click', toggleSound);
+
+    function toggleSound() {
+        isAudioEnabled = !isAudioEnabled;
+        soundButton.textContent = `Sound: ${isAudioEnabled ? 'On' : 'Off'}`;
+
+        // Mute/unmute all audio elements
+        Object.values(assets).forEach(audio => {
+            if (audio instanceof Audio) {
+                audio.muted = !isAudioEnabled;
+            }
+        });
+
+        // Pause background music if sound is off
+        if (!isAudioEnabled) {
+            assets.backgroundMusic.pause();
+        } else if (!isPaused && !gameOver) {
+            assets.backgroundMusic.play();
+        }
+    }
+
     function enableAudio() {
         if (!isAudioEnabled) {
             assets.backgroundMusic.play();
@@ -253,7 +276,7 @@ window.onload = function () {
         });
 
         // Draw snow explosions
-        snowExplosions.forEach((explosion, index) => {
+        snowExplosions.forEach((explosion) => {
             // Draw white circle
             context.beginPath();
             context.arc(explosion.x, explosion.y, explosion.radius, 0, Math.PI * 2);
@@ -264,11 +287,6 @@ window.onload = function () {
             explosion.snowflakes.forEach(snowflake => {
                 context.drawImage(assets.snowflake, snowflake.x, snowflake.y, snowflake.size, snowflake.size);
             });
-
-            // Reduce timer and remove if done
-            if (--explosion.timer <= 0) {
-                snowExplosions.splice(index, 1);
-            }
         });
 
         // Draw score
@@ -336,6 +354,19 @@ window.onload = function () {
             drawGameObjects();
             return;
         }
+
+        // Update snow explosion effects
+        snowExplosions.forEach((explosion, index) => {
+            explosion.snowflakes.forEach(snowflake => {
+                snowflake.x += Math.cos(snowflake.angle) * snowflake.speed;
+                snowflake.y += Math.sin(snowflake.angle) * snowflake.speed;
+            });
+
+            // Reduce timer and remove if done
+            if (--explosion.timer <= 0) {
+                snowExplosions.splice(index, 1);
+            }
+        });
 
         // Check for freezing
         if (score % 300 === 0 && score !== 0 && !isFreezing) {
