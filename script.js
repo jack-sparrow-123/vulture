@@ -54,21 +54,7 @@ window.onload = function () {
         assets[key].onerror = () => console.error(`Failed to load ${key}`);
     });
 
-    function startGame() {
-        if (gameStarted) return;
-        gameStarted = true;
-        assets.backgroundMusic.loop = true;
-        assets.backgroundMusic.play().catch(() => console.warn("Audio play blocked until user interacts."));
-        alert("Warning: The game will freeze at multiples of 300!");
-
-        setInterval(spawnObjects, 1000);
-        gameLoop();
-    }
-
-    // Ensure game starts only when user interacts
-    document.addEventListener("click", startGame);
-    document.addEventListener("touchstart", startGame);
-
+    // Define drawGameObjects before gameLoop
     function drawGameObjects() {
         context.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -121,9 +107,24 @@ window.onload = function () {
             assets.freezeSound.play();
         }
 
-        drawGameObjects();
+        drawGameObjects(); // Now this will work
         checkLaserCollisions();
         updateFreeze();
         requestAnimationFrame(gameLoop);
     }
+
+    function startGame() {
+        if (gameStarted) return;
+        gameStarted = true;
+        assets.backgroundMusic.loop = true;
+        assets.backgroundMusic.play().catch(() => console.warn("Audio play blocked until user interacts."));
+        alert("Warning: The game will freeze at multiples of 300!");
+
+        setInterval(spawnObjects, 1000);
+        gameLoop();
+    }
+
+    // Ensure game starts only when user interacts
+    document.addEventListener("click", startGame);
+    document.addEventListener("touchstart", startGame);
 };
