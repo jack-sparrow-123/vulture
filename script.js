@@ -28,8 +28,8 @@ window.onload = function () {
         bomb: 'bomb.png.png',
         explosion: 'explosion.png.png',
         snowflake: 'snowflake.png.png',
-        iceOverlay: 'iceoverlay.png',
-        frozenDrone: 'snowdrone.png.png'
+        iceOverlay: 'ice-overlay.png',
+        frozenDrone: 'frozen-drone.png'
     };
 
     let loadedImages = 0;
@@ -106,6 +106,8 @@ window.onload = function () {
 
     function deactivateLaser() {
         laserActive = false;
+        assets.laserSound.pause();
+        assets.laserSound.currentTime = 0;
     }
 
     function checkLaserCollisions() {
@@ -263,6 +265,7 @@ window.onload = function () {
     }
 
     function snowExplosion(x, y) {
+        assets.snowExplosionSound.currentTime = 0;
         assets.snowExplosionSound.play();
         for (let i = 0; i < 100; i++) {
             snowflakes.push({
@@ -289,6 +292,7 @@ window.onload = function () {
         if (score % 300 === 0 && score !== 0 && !isFreezing) {
             isFreezing = true;
             freezeTimer = 180; // 3 seconds at 60 FPS
+            assets.freezingSound.currentTime = 0;
             assets.freezingSound.play();
         }
 
