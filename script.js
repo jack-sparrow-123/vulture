@@ -40,104 +40,71 @@ window.onload = function () {
     let drones = [], blackDrones = [], snowDrones = [], bombs = [], explosions = [], snowflakes = [];
     let score = 0, gameOver = false, speedMultiplier = 1;
     let laserActive = false, isFrozen = false, freezeTimer = 0, freezeEffectAlpha = 0;
+    let gameStarted = false;
 
     // Load images
     Object.keys(imagePaths).forEach((key) => {
         assets[key].src = imagePaths[key];
         assets[key].onload = () => {
             loadedImages++;
-            if (loadedImages === totalImages) startGame();
+            if (loadedImages === totalImages) {
+                alert("Tap or click to start the game.");
+            }
         };
         assets[key].onerror = () => console.error(`Failed to load ${key}`);
     });
 
-    // Touch and mouse controls
-    let touchStartX = 0, touchStartY = 0, isTouching = false;
+    function startGame() {
+        if (gameStarted) return;
+        gameStarted = true;
+        assets.backgroundMusic.loop = true;
+        assets.backgroundMusic.play().catch(() => console.warn("Audio play blocked until user interacts."));
+        alert("Warning: The game will freeze at multiples of 300!");
 
-    function handleStart(x, y) {
-        isTouching = true;
-        touchStartX = x;
-        touchStartY = y;
-        laserActive = true;
+        setInterval(spawnObjects, 1000);
+        gameLoop();
     }
 
-    function handleMove(x, y) {
-        if (isTouching) {
-            player.angle = Math.atan2(y - touchStartY, x - touchStartX);
-            touchStartX = x;
-            touchStartY = y;
-        }
-    }
+    // Ensure game starts only when user interacts
+    document.addEventListener("click", startGame);
+    document.addEventListener("touchstart", startGame);
 
-    function handleEnd() {
-        isTouching = false;
-        laserActive = false;
-    }
+    function drawGameObjects() {
+        context.clearRect(0, 0, canvas.width, canvas.height);
 
-    canvas.addEventListener("touchstart", (e) => handleStart(e.touches[0].clientX, e.touches[0].clientY));
-    canvas.addEventListener("touchmove", (e) => handleMove(e.touches[0].clientX, e.touches[0].clientY));
-    canvas.addEventListener("touchend", handleEnd);
-    canvas.addEventListener("mousedown", (e) => handleStart(e.clientX, e.clientY));
-    canvas.addEventListener("mousemove", (e) => handleMove(e.clientX, e.clientY));
-    canvas.addEventListener("mouseup", handleEnd);
+        // Draw player
+        context.save();
+        context.translate(player.x, player.y);
+        context.rotate(player.angle);
+        context.drawImage(assets.player, -player.size / 2, -player.size / 2, player.size, player.size);
+        context.restore();
 
-    function checkLaserCollisions() {
-        if (!laserActive || isFrozen) return;
-        const laserEndX = player.x + Math.cos(player.angle) * canvas.width * 2;
-        const laserEndY = player.y + Math.sin(player.angle) * canvas.width * 2;
+        // Draw drones
+        drones.forEach(drone => context.drawImage(assets.drone, drone.x, drone.y, 50, 50));
+        blackDrones.forEach(drone => context.drawImage(assets.blackDrone, drone.x, drone.y, 50, 50));
+        bombs.forEach(bomb => context.drawImage(assets.bomb, bomb.x, bomb.y, 50, 50));
+        snowDrones.forEach(snowDrone => context.drawImage(assets.snowDrone, snowDrone.x, snowDrone.y, 50, 50));
 
-        [drones, blackDrones, bombs, snowDrones].forEach((arr, index) => {
-            for (let i = arr.length - 1; i >= 0; i--) {
-                let obj = arr[i];
-                if (lineCircleIntersection(player.x, player.y, laserEndX, laserEndY, obj.x, obj.y, 25)) {
-                    if (index === 0) { // Normal drones
-                        explosions.push({ x: obj.x, y: obj.y, timer: 30, isSnowExplosion: false });
-                        assets.explosionSound.play();
-                        score += 10;
-                    } else if (index === 2) { // Bombs
-                        gameOver = true;
-                        assets.gameOverSound.play();
-                        return;
-                    } else if (index === 3) { // Snow drones
-                        createSnowExplosion(obj.x, obj.y);
-                        assets.snowExplosionSound.play();
-                    } else { // Black drones
-                        gameOver = true;
-                        assets.gameOverSound.play();
-                        return;
-                    }
-                    arr.splice(i, 1);
-                }
+        // Draw explosions
+        explosions.forEach(explosion => {
+            if (explosion.isSnowExplosion) {
+                context.drawImage(assets.snowflake, explosion.x, explosion.y, 50, 50);
+            } else {
+                context.drawImage(assets.explosion, explosion.x, explosion.y, 50, 50);
             }
         });
-    }
 
-    function createSnowExplosion(x, y) {
-        for (let i = 0; i < 50; i++) {
-            let angle = Math.random() * Math.PI * 2;
-            let speed = Math.random() * 3 + 1;
-            snowflakes.push({ x, y, dx: Math.cos(angle) * speed, dy: Math.sin(angle) * speed, size: Math.random() * 10 + 5, alpha: 1 });
+        // Draw freeze overlay
+        if (isFrozen) {
+            context.globalAlpha = freezeEffectAlpha;
+            context.drawImage(assets.iceEffect, 0, 0, canvas.width, canvas.height);
+            context.globalAlpha = 1;
         }
-    }
 
-    function spawnObjects() {
-        if (isFrozen) return;
-        drones.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 1 * speedMultiplier });
-        if (score >= 50) speedMultiplier = 1.5;
-        if (Math.random() < 0.3) blackDrones.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 2 * speedMultiplier });
-        if (Math.random() < 0.2) bombs.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 2 * speedMultiplier });
-        if (score >= 600 && Math.random() < 0.3) snowDrones.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 3 + 3 * speedMultiplier });
-
-        if (Math.random() < 0.5) {
-            snowflakes.push({ x: Math.random() * canvas.width, y: 0, dx: (Math.random() - 0.5) * 2, dy: Math.random() * 2 + 1, size: Math.random() * 10 + 5, alpha: 1 });
-        }
-    }
-
-    function updateFreeze() {
-        if (isFrozen && --freezeTimer <= 0) {
-            isFrozen = false;
-            freezeEffectAlpha = 0;
-        }
+        // Draw score
+        context.fillStyle = "white";
+        context.font = "20px Arial";
+        context.fillText("Score: " + score, 20, 30);
     }
 
     function gameLoop() {
@@ -159,12 +126,4 @@ window.onload = function () {
         updateFreeze();
         requestAnimationFrame(gameLoop);
     }
-
-    function startGame() {
-        assets.backgroundMusic.loop = true;
-        assets.backgroundMusic.play();
-        alert("Warning: The game will freeze at multiples of 300!");
-        setInterval(spawnObjects, 1000);
-        gameLoop();
-    }
-}; 
+};
