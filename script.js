@@ -45,6 +45,9 @@ window.onload = function () {
     let freezeTimer = 0;
     let frozenDroneActive = false;
 
+    // Store snow explosion effects
+    let snowExplosions = [];
+
     Object.keys(imagePaths).forEach((key) => {
         assets[key].src = imagePaths[key];
         assets[key].onload = () => {
@@ -245,6 +248,25 @@ window.onload = function () {
             if (--explosion.timer <= 0) explosions.splice(index, 1);
         });
 
+        // Draw snow explosions
+        snowExplosions.forEach((explosion, index) => {
+            // Draw white circle
+            context.beginPath();
+            context.arc(explosion.x, explosion.y, explosion.radius, 0, Math.PI * 2);
+            context.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            context.fill();
+
+            // Draw snowflakes
+            explosion.snowflakes.forEach(snowflake => {
+                context.drawImage(assets.snowflake, snowflake.x, snowflake.y, snowflake.size, snowflake.size);
+            });
+
+            // Reduce timer and remove if done
+            if (--explosion.timer <= 0) {
+                snowExplosions.splice(index, 1);
+            }
+        });
+
         // Draw score
         context.fillStyle = 'white';
         context.font = '20px Arial';
@@ -270,21 +292,27 @@ window.onload = function () {
         assets.snowExplosionSound.currentTime = 0;
         assets.snowExplosionSound.play();
 
-        // Draw a white circle effect
-        context.beginPath();
-        context.arc(x, y, 50, 0, Math.PI * 2);
-        context.fillStyle = 'rgba(255, 255, 255, 0.5)';
-        context.fill();
+        // Create snow explosion effect
+        const explosion = {
+            x: x,
+            y: y,
+            radius: 50,
+            timer: 60, // 1 second at 60 FPS
+            snowflakes: []
+        };
 
+        // Add snowflakes
         for (let i = 0; i < 100; i++) {
-            snowflakes.push({
-                x: x,
-                y: y,
-                speed: Math.random() * 5 + 2,
+            explosion.snowflakes.push({
+                x: x + Math.random() * 100 - 50,
+                y: y + Math.random() * 100 - 50,
                 size: Math.random() * 10 + 5,
+                speed: Math.random() * 5 + 2,
                 angle: Math.random() * Math.PI * 2
             });
         }
+
+        snowExplosions.push(explosion);
     }
 
     function gameLoop() {
