@@ -11,10 +11,14 @@ window.onload = function () {
         bomb: new Image(),
         explosion: new Image(),
         snowflake: new Image(),
+        iceOverlay: new Image(),
+        frozenDrone: new Image(),
         laserSound: new Audio('attack-laser-128280.mp3'),
         explosionSound: new Audio('small-explosion-129477.mp3'),
         backgroundMusic: new Audio('lonely-winter-breeze-36867.mp3'),
-        gameOverSound: new Audio('gameover.mp3')
+        gameOverSound: new Audio('gameover.mp3'),
+        freezingSound: new Audio('freezing-sound.mp3.mp3'),
+        snowExplosionSound: new Audio('snow-explosion.mp3')
     };
 
     const imagePaths = {
@@ -23,7 +27,9 @@ window.onload = function () {
         blackDrone: 'blackdrone.png.png',
         bomb: 'bomb.png.png',
         explosion: 'explosion.png.png',
-        snowflake: 'snowflake.png.png'
+        snowflake: 'snowflake.png.png',
+        iceOverlay: 'iceoverlay.png',
+        frozenDrone: 'snowdrone.png.png'
     };
 
     let loadedImages = 0;
@@ -35,6 +41,9 @@ window.onload = function () {
     let gameOverSoundPlayed = false;
     let speedMultiplier = 1;
     let laserActive = false;
+    let isFreezing = false;
+    let freezeTimer = 0;
+    let frozenDroneActive = false;
 
     Object.keys(imagePaths).forEach((key) => {
         assets[key].src = imagePaths[key];
@@ -45,6 +54,9 @@ window.onload = function () {
             }
         };
     });
+
+    // Alert the player about freezing mechanics
+    alert("Warning: When your score reaches multiples of 300, the game will freeze temporarily. At 600, a frozen drone will appear. Be careful!");
 
     document.addEventListener('click', enableAudio);
     document.addEventListener('keydown', movePlayer);
@@ -87,7 +99,7 @@ window.onload = function () {
     function activateLaser() {
         if (!laserActive) {
             laserActive = true;
-            assets.laserSound.currentTime = 0; // Reset sound to start
+            assets.laserSound.currentTime = 0;
             assets.laserSound.play();
         }
     }
@@ -99,11 +111,9 @@ window.onload = function () {
     function checkLaserCollisions() {
         if (!laserActive) return;
 
-        // Calculate the end point of the laser beam
         const laserEndX = player.x + Math.cos(player.angle) * canvas.width * 2;
         const laserEndY = player.y + Math.sin(player.angle) * canvas.width * 2;
 
-        // Check collisions with drones, black drones, and bombs
         [drones, blackDrones, bombs].forEach((arr, ai) => {
             for (let i = arr.length - 1; i >= 0; i--) {
                 const obj = arr[i];
@@ -111,22 +121,19 @@ window.onload = function () {
                     explosions.push({ x: obj.x, y: obj.y, timer: 30 });
                     arr.splice(i, 1);
 
-                    // Increase score or trigger game over
                     if (ai === 0) {
-                        score += 10; // Score for drones
+                        score += 10;
                     } else {
-                        gameOver = true; // Game over for black drones and bombs
+                        gameOver = true;
                         if (!gameOverSoundPlayed) {
                             assets.gameOverSound.play();
                             gameOverSoundPlayed = true;
                         }
                     }
 
-                    // Play explosion sound immediately
-                    assets.explosionSound.currentTime = 0; // Reset sound position to ensure it plays from the beginning
+                    assets.explosionSound.currentTime = 0;
                     assets.explosionSound.play();
 
-                    // Stop the laser sound immediately when hitting a target
                     if (laserActive) {
                         assets.laserSound.pause();
                         assets.laserSound.currentTime = 0;
@@ -135,6 +142,19 @@ window.onload = function () {
                 }
             }
         });
+
+        // Check collision with frozen drone
+        if (frozenDroneActive) {
+            const frozenDrone = blackDrones.find(drone => drone.isFrozen);
+            if (frozenDrone && lineCircleIntersection(player.x, player.y, laserEndX, laserEndY, frozenDrone.x, frozenDrone.y, 25)) {
+                snowExplosion(frozenDrone.x, frozenDrone.y);
+                gameOver = true;
+                if (!gameOverSoundPlayed) {
+                    assets.gameOverSound.play();
+                    gameOverSoundPlayed = true;
+                }
+            }
+        }
     }
 
     function lineCircleIntersection(x1, y1, x2, y2, cx, cy, r) {
@@ -149,7 +169,7 @@ window.onload = function () {
 
         const discriminant = b * b - 4 * a * c;
 
-        if (discriminant < 0) return false; // No intersection
+        if (discriminant < 0) return false;
 
         const t1 = (-b - Math.sqrt(discriminant)) / (2 * a);
         const t2 = (-b + Math.sqrt(discriminant)) / (2 * a);
@@ -163,6 +183,12 @@ window.onload = function () {
         if (Math.random() < 0.3) blackDrones.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 2 * speedMultiplier });
         if (Math.random() < 0.2) bombs.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 2 * speedMultiplier });
         snowflakes.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 1, size: Math.random() * 10 + 5 });
+
+        // Spawn frozen drone at score 600
+        if (score >= 600 && !frozenDroneActive) {
+            blackDrones.push({ x: Math.random() * canvas.width, y: 0, speed: 3, isFrozen: true });
+            frozenDroneActive = true;
+        }
     }
 
     function drawGameObjects() {
@@ -188,6 +214,14 @@ window.onload = function () {
                 }
             });
         });
+
+        // Draw frozen drone
+        if (frozenDroneActive) {
+            const frozenDrone = blackDrones.find(drone => drone.isFrozen);
+            if (frozenDrone) {
+                context.drawImage(assets.frozenDrone, frozenDrone.x, frozenDrone.y, 60, 60);
+            }
+        }
 
         // Draw laser beam if active
         if (laserActive) {
@@ -219,6 +253,26 @@ window.onload = function () {
             context.textAlign = 'center';
             context.fillText('Game Over', canvas.width / 2, canvas.height / 2);
         }
+
+        // Draw ice overlay during freezing
+        if (isFreezing) {
+            context.globalAlpha = 0.5;
+            context.drawImage(assets.iceOverlay, 0, 0, canvas.width, canvas.height);
+            context.globalAlpha = 1.0;
+        }
+    }
+
+    function snowExplosion(x, y) {
+        assets.snowExplosionSound.play();
+        for (let i = 0; i < 100; i++) {
+            snowflakes.push({
+                x: x,
+                y: y,
+                speed: Math.random() * 5 + 2,
+                size: Math.random() * 10 + 5,
+                angle: Math.random() * Math.PI * 2
+            });
+        }
     }
 
     function gameLoop() {
@@ -230,8 +284,23 @@ window.onload = function () {
             drawGameObjects();
             return;
         }
+
+        // Check for freezing
+        if (score % 300 === 0 && score !== 0 && !isFreezing) {
+            isFreezing = true;
+            freezeTimer = 180; // 3 seconds at 60 FPS
+            assets.freezingSound.play();
+        }
+
+        if (isFreezing) {
+            freezeTimer--;
+            if (freezeTimer <= 0) {
+                isFreezing = false;
+            }
+        }
+
         drawGameObjects();
-        checkLaserCollisions(); // Check collisions every frame
+        checkLaserCollisions();
         requestAnimationFrame(gameLoop);
     }
 
