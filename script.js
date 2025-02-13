@@ -44,6 +44,7 @@ window.onload = function () {
     let isFreezing = false;
     let freezeTimer = 0;
     let frozenDroneActive = false;
+    let isPaused = false;
 
     // Store snow explosion effects
     let snowExplosions = [];
@@ -78,7 +79,7 @@ window.onload = function () {
     }
 
     function movePlayer(e) {
-        if (gameOver) return;
+        if (gameOver || isPaused) return;
         if (e.code === 'ArrowLeft') player.x -= 10;
         if (e.code === 'ArrowRight') player.x += 10;
         if (e.code === 'ArrowUp') player.y -= 10;
@@ -86,13 +87,13 @@ window.onload = function () {
     }
 
     function movePlayerTouch(e) {
-        if (gameOver) return;
+        if (gameOver || isPaused) return;
         player.x = e.touches[0].clientX;
         player.y = e.touches[0].clientY;
     }
 
     function aimGun(e) {
-        if (gameOver) return;
+        if (gameOver || isPaused) return;
         const rect = canvas.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
@@ -100,7 +101,7 @@ window.onload = function () {
     }
 
     function activateLaser() {
-        if (!laserActive) {
+        if (!laserActive && !isPaused) {
             laserActive = true;
             if (assets.laserSound.paused) {
                 assets.laserSound.currentTime = 0;
@@ -116,7 +117,7 @@ window.onload = function () {
     }
 
     function checkLaserCollisions() {
-        if (!laserActive) return;
+        if (!laserActive || isPaused) return;
 
         const laserEndX = player.x + Math.cos(player.angle) * canvas.width * 2;
         const laserEndY = player.y + Math.sin(player.angle) * canvas.width * 2;
@@ -185,6 +186,7 @@ window.onload = function () {
     }
 
     function spawnObjects() {
+        if (isPaused) return;
         drones.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 1 * speedMultiplier });
         if (score >= 50) speedMultiplier = 1.5;
         if (Math.random() < 0.3) blackDrones.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 2 * speedMultiplier });
@@ -286,6 +288,14 @@ window.onload = function () {
             context.drawImage(assets.iceOverlay, 0, 0, canvas.width, canvas.height);
             context.globalAlpha = 1.0;
         }
+
+        // Draw "Paused" message
+        if (isPaused) {
+            context.fillStyle = 'yellow';
+            context.font = '60px Arial';
+            context.textAlign = 'center';
+            context.fillText('Paused', canvas.width / 2, canvas.height / 2);
+        }
     }
 
     function snowExplosion(x, y) {
@@ -316,8 +326,8 @@ window.onload = function () {
     }
 
     function gameLoop() {
-        if (gameOver) {
-            if (!gameOverSoundPlayed) {
+        if (gameOver || isPaused) {
+            if (!gameOverSoundPlayed && gameOver) {
                 assets.gameOverSound.play();
                 gameOverSoundPlayed = true;
             }
@@ -350,4 +360,36 @@ window.onload = function () {
         setInterval(spawnObjects, 1000);
         gameLoop();
     }
+
+    // Game control functions
+    function pauseGame() {
+        isPaused = true;
+        assets.backgroundMusic.pause();
+    }
+
+    function resumeGame() {
+        isPaused = false;
+        assets.backgroundMusic.play();
+    }
+
+    function restartGame() {
+        player = { x: canvas.width / 2, y: canvas.height / 2, size: 60, angle: 0 };
+        drones = [];
+        blackDrones = [];
+        bombs = [];
+        explosions = [];
+        snowflakes = [];
+        score = 0;
+        gameOver = false;
+        gameOverSoundPlayed = false;
+        isPaused = false;
+        frozenDroneActive = false;
+        assets.backgroundMusic.currentTime = 0;
+        assets.backgroundMusic.play();
+    }
+
+    // Expose game control functions to the global scope
+    window.pauseGame = pauseGame;
+    window.resumeGame = resumeGame;
+    window.restartGame = restartGame;
 };
