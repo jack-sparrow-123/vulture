@@ -248,7 +248,7 @@ window.onload = function () {
         // Draw score
         context.fillStyle = 'white';
         context.font = '20px Arial';
-        context.fillText(Score: ${score}, 20, 30);
+        context.fillText(`Score: ${score}`, 20, 30);
 
         // Draw "Game Over" message
         if (gameOver) {
@@ -269,6 +269,13 @@ window.onload = function () {
     function snowExplosion(x, y) {
         assets.snowExplosionSound.currentTime = 0;
         assets.snowExplosionSound.play();
+
+        // Draw a white circle effect
+        context.beginPath();
+        context.arc(x, y, 50, 0, Math.PI * 2);
+        context.fillStyle = 'rgba(255, 255, 255, 0.5)';
+        context.fill();
+
         for (let i = 0; i < 100; i++) {
             snowflakes.push({
                 x: x,
@@ -315,4 +322,4 @@ window.onload = function () {
         setInterval(spawnObjects, 1000);
         gameLoop();
     }
-}; 
+};
