@@ -6,28 +6,11 @@
     <title>Drone Smasher</title>
     <style>
     
-#soundButton {
-    position: absolute;
-    top: 50px;
-    right: 20px;
-    display: flex;
-    flex-direction: column;
-    padding: 10px;
-    font-size: 16px;
-    cursor: pointer;
-    background-color: #007BFF;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    
 
-#soundButton:hover {
-    background-color: #45a049;
-}
 
 .back-button {
     position: absolute;
-    top: 40px;  /* Adjusted to be two steps (20px each) down */
+    top: 40px;  
     left: 20px;
     padding: 10px;
     font-size: 16px;
@@ -108,7 +91,7 @@
         <button onclick="pauseGame()">Pause</button>
         <button onclick="resumeGame()">Resume</button>
         <button onclick="restartGame()">Restart</button>
-         <button id="soundButton">Sound: On</button>
+         <button onclick="toggleSound()">Sound: On</button>
     </div>
 
 
