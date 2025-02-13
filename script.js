@@ -77,6 +77,9 @@ window.onload = function () {
     const soundButton = document.querySelector('button[onclick="toggleSound()"]');
     soundButton.addEventListener('click', toggleSound);
 
+    // Set initial sound button text
+    soundButton.textContent = `Sound: ${isAudioEnabled ? 'On' : 'Off'}`;
+
     function toggleSound() {
         isAudioEnabled = !isAudioEnabled;
         soundButton.textContent = `Sound: ${isAudioEnabled ? 'On' : 'Off'}`;
