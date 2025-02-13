@@ -180,6 +180,13 @@ window.onload = function () {
         if (frozenDroneActive) {
             const frozenDrone = blackDrones.find(drone => drone.isFrozen);
             if (frozenDrone && lineCircleIntersection(player.x, player.y, laserEndX, laserEndY, frozenDrone.x, frozenDrone.y, 25)) {
+                // Draw white circle at the point of impact
+                context.beginPath();
+                context.arc(frozenDrone.x, frozenDrone.y, 50, 0, Math.PI * 2);
+                context.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                context.fill();
+
+                // Trigger snow explosion
                 snowExplosion(frozenDrone.x, frozenDrone.y);
                 gameOver = true;
                 if (!gameOverSoundPlayed) {
