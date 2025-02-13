@@ -45,7 +45,8 @@ window.onload = function () {
     let freezeTimer = 0;
     let frozenDroneActive = false;
     let isPaused = false;
-    let gameLoopId; // To store the game loop ID for resuming
+    let gameLoopId = null; // To store the game loop ID
+    let spawnIntervalId = null; // To store the spawn interval ID
 
     // Store snow explosion effects
     let snowExplosions = [];
@@ -358,7 +359,7 @@ window.onload = function () {
 
     function startGame() {
         assets.backgroundMusic.loop = true;
-        setInterval(spawnObjects, 1000);
+        spawnIntervalId = setInterval(spawnObjects, 1000); // Store the spawn interval ID
         gameLoop();
     }
 
@@ -375,22 +376,35 @@ window.onload = function () {
     }
 
     function restartGame() {
-        player = { x: canvas.width / 2, y: canvas.height / 2, size: 60, angle: 0 };
+        // Clear all game objects
         drones = [];
         blackDrones = [];
         bombs = [];
         explosions = [];
         snowflakes = [];
+        snowExplosions = [];
+
+        // Reset game state
+        player = { x: canvas.width / 2, y: canvas.height / 2, size: 60, angle: 0 };
         score = 0;
         gameOver = false;
         gameOverSoundPlayed = false;
         isPaused = false;
         frozenDroneActive = false;
+        speedMultiplier = 1;
+
+        // Reset audio
         assets.backgroundMusic.currentTime = 0;
         assets.backgroundMusic.play();
-        if (!gameLoopId) {
-            gameLoop(); // Restart the game loop if it's not running
+
+        // Restart the game loop
+        if (gameLoopId) {
+            cancelAnimationFrame(gameLoopId);
         }
+        if (spawnIntervalId) {
+            clearInterval(spawnIntervalId);
+        }
+        startGame();
     }
 
     // Expose game control functions to the global scope
