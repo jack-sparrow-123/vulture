@@ -6,13 +6,12 @@
     <title>Drone Smasher</title>
     <style>
     
-
 #soundButton {
     position: absolute;
     top: 20px;
     right: 20px;
-    display:flex;
-    flex-direction:coloumn;
+    display: flex;
+    flex-direction: column;
     padding: 10px;
     font-size: 16px;
     cursor: pointer;
@@ -20,18 +19,18 @@
     color: white;
     border: none;
     border-radius: 5px;
-    margin-top:10px;
+    margin-top: 10px;
 }
 
 #soundButton:hover {
     background-color: #45a049;
 }
-    
+
 .back-button {
     position: absolute;
-    top: 50px; 
-    left: 20%; 
-    transform: translateX(-50%); 
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     padding: 10px;
     font-size: 16px;
     color: white;
@@ -40,38 +39,37 @@
     border-radius: 5px;
     cursor: pointer;
     z-index: 1000;
-    margin-right:20%;
 }
 
-      
-        .back-button:hover {
-            background-color: #0056b3;
-        }
+.back-button:hover {
+    background-color: #0056b3;
+}
+
+.settings-panel {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.settings-panel button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.settings-panel button:hover {
+    background-color: #0056b3;
+}
 
 
-
-  .settings-panel {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            gap: 10px;
-       flex-direction:coloumn;
-        }
-        .settings-panel button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            transition: background-color 0.3s;
-        }
-        .settings-panel button:hover {
-            background-color: #0056b3;
-        }
-        
     </style>
 </head>
 <body>
