@@ -7,7 +7,22 @@
     <style>
     
 
+#soundButton {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
 
+#soundButton:hover {
+    background-color: #45a049;
+}
     
 .back-button {
     position: absolute;
@@ -62,6 +77,7 @@
         <button onclick="pauseGame()">Pause</button>
         <button onclick="resumeGame()">Resume</button>
         <button onclick="restartGame()">Restart</button>
+         <button id="soundButton">Sound: On</button>
     </div>
     <script src="script.js"></script>
     <script>
