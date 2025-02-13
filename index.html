@@ -94,7 +94,9 @@
             window.location.href = 'https://jack-sparrow-123.github.io/homepage/';
         }
 
-document.addEventListener("DOMContentLoaded", () => {
+
+
+        document.addEventListener("DOMContentLoaded", () => {
     let isPaused = false;
     let isSoundOn = true;
 
@@ -116,16 +118,16 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log(isSoundOn ? "Sound Enabled" : "Sound Muted");
     }
 
-    // Restart Game
-    function restartGame() {
-        location.reload();
-        console.log("Game Restarted");
-    }
-
     // Attach event listeners
     pauseButton.addEventListener("click", togglePause);
     soundButton.addEventListener("click", toggleSound);
 });
+
+// Restart Game (moved outside of the event listener)
+function restartGame() {
+    location.reload();
+    console.log("Game Restarted");
+}
 
        
     </script>
