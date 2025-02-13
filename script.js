@@ -99,8 +99,10 @@ window.onload = function () {
     function activateLaser() {
         if (!laserActive) {
             laserActive = true;
-            assets.laserSound.currentTime = 0;
-            assets.laserSound.play();
+            if (assets.laserSound.paused) {
+                assets.laserSound.currentTime = 0;
+                assets.laserSound.play();
+            }
         }
     }
 
