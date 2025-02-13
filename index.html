@@ -8,7 +8,7 @@
     
 #soundButton {
     position: absolute;
-    top: 80px;  
+    top: 20px;
     right: 20px;
     padding: 10px;
     font-size: 16px;
@@ -17,7 +17,10 @@
     color: white;
     border: none;
     border-radius: 5px;
-    margin-top: 10px;
+    display:flex;
+    flex-direction:column;
+    
+}
 
 #soundButton:hover {
     background-color: #45a049;
@@ -25,7 +28,7 @@
 
 .back-button {
     position: absolute;
-    top: 40px;  
+    top: 40px;  /* Adjusted to be two steps (20px each) down */
     left: 20px;
     padding: 10px;
     font-size: 16px;
@@ -47,7 +50,7 @@
     right: 20px;
     display: flex;
     flex-direction: column;
-    gap: 20px; 
+    gap: 10px; 
 }
 
 .settings-panel button {
@@ -64,6 +67,7 @@
 .settings-panel button:hover {
     background-color: #0056b3;
 }
+
 
     </style>
 </head>
