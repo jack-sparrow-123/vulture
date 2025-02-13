@@ -74,7 +74,7 @@ window.onload = function () {
     canvas.addEventListener('touchmove', movePlayerTouch);
 
     // Add sound toggle functionality
-    const soundButton = document.getElementById('soundButton');
+    const soundButton = document.querySelector('button[onclick="toggleSound()"]');
     soundButton.addEventListener('click', toggleSound);
 
     function toggleSound() {
@@ -443,4 +443,5 @@ window.onload = function () {
     window.pauseGame = pauseGame;
     window.resumeGame = resumeGame;
     window.restartGame = restartGame;
+    window.toggleSound = toggleSound;
 };
