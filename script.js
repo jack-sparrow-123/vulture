@@ -36,7 +36,7 @@ window.onload = function () {
     let totalImages = Object.keys(imagePaths).length;
     let player = { x: canvas.width / 2, y: canvas.height / 2, size: 60, angle: 0 };
     let drones = [], blackDrones = [], bombs = [], explosions = [], snowflakes = [], score = 0;
-    let isAudioEnabled = false;
+    let isAudioEnabled = true; // Sound is initially on
     let gameOver = false;
     let gameOverSoundPlayed = false;
     let speedMultiplier = 1;
@@ -218,10 +218,11 @@ window.onload = function () {
         if (Math.random() < 0.2) bombs.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 2 * speedMultiplier });
         snowflakes.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 1, size: Math.random() * 10 + 5 });
 
-        // Spawn frozen drone at score 600
+        // Spawn frozen drone at score 600 with increased complexity
         if (score >= 600 && !frozenDroneActive) {
             blackDrones.push({ x: Math.random() * canvas.width, y: 0, speed: 3, isFrozen: true });
             frozenDroneActive = true;
+            speedMultiplier = 2; // Increase game speed
         }
     }
 
