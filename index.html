@@ -94,46 +94,50 @@
             window.location.href = 'https://jack-sparrow-123.github.io/homepage/';
         }
 
-let isPaused = false;
-let isSoundOn = true;
+document.addEventListener("DOMContentLoaded", () => {
+    let isPaused = false;
+    let isSoundOn = true;
 
-// Toggle Pause/Resume
-function togglePause() {
-    isPaused = !isPaused;
+    // Select buttons after DOM is loaded
     const pauseButton = document.querySelector(".pause");
-    if (pauseButton) {
-        pauseButton.innerText = isPaused ? "Resume" : "Pause";
-    }
-    console.log(isPaused ? "Game Paused" : "Game Resumed"); // Debugging
-}
-
-// Toggle Sound On/Off
-function toggleSound() {
-    isSoundOn = !isSoundOn;
     const soundButton = document.querySelector(".sound");
-    if (soundButton) {
-        soundButton.innerText = isSoundOn ? "Sound: ON" : "Sound: OFF";
-    }
-    console.log(isSoundOn ? "Sound Enabled" : "Sound Muted"); // Debugging
-}
 
-// Restart Game
-function restartGame() {
-    location.reload(); // Reload the page to restart the game
-    console.log("Game Restarted"); // Debugging
-}
+    // Toggle Pause/Resume
+    function togglePause() {
+        isPaused = !isPaused;
+        pauseButton.innerText = isPaused ? "Resume" : "Pause";
+        console.log(isPaused ? "Game Paused" : "Game Resumed");
+    }
+
+    // Toggle Sound On/Off
+    function toggleSound() {
+        isSoundOn = !isSoundOn;
+        soundButton.innerText = isSoundOn ? "Sound: ON" : "Sound: OFF";
+        console.log(isSoundOn ? "Sound Enabled" : "Sound Muted");
+    }
+
+    // Restart Game
+    function restartGame() {
+        location.reload();
+        console.log("Game Restarted");
+    }
+
+    // Attach event listeners
+    pauseButton.addEventListener("click", togglePause);
+    soundButton.addEventListener("click", toggleSound);
+});
 
        
     </script>
 
-    <div class="settings-menu">
-        <h2>Game Settings</h2>
-        <button class="pause" onclick="togglePause()">Pause</button>
-        <button class="restart" onclick="restartGame()">Restart</button>
-        <button class="sound" onclick="toggleSound()">Sound: ON</button>
-    </div>
-
     
+    <div class="settings-menu">
+    <h2>Game Settings</h2>
+    <button class="pause">Pause</button>
+    <button class="restart" onclick="restartGame()">Restart</button>
+    <button class="sound">Sound: ON</button>
+</div>
+
        
     
 
