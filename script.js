@@ -51,6 +51,7 @@ window.onload = function () {
     // Store snow explosion effects
     let snowExplosions = [];
 
+    // Load images
     Object.keys(imagePaths).forEach((key) => {
         assets[key].src = imagePaths[key];
         assets[key].onload = () => {
@@ -64,6 +65,7 @@ window.onload = function () {
     // Alert the player about freezing mechanics
     alert("Warning: When your score reaches multiples of 300, the game will freeze temporarily. At 600, a frozen drone will appear. Be careful!");
 
+    // Event listeners
     document.addEventListener('click', enableAudio);
     document.addEventListener('keydown', movePlayer);
     document.addEventListener('mousedown', activateLaser);
@@ -80,6 +82,7 @@ window.onload = function () {
     // Set initial sound button text
     soundButton.textContent = `Sound: ${isAudioEnabled ? 'On' : 'Off'}`;
 
+    // Toggle sound on/off
     function toggleSound() {
         isAudioEnabled = !isAudioEnabled;
         soundButton.textContent = `Sound: ${isAudioEnabled ? 'On' : 'Off'}`;
@@ -99,6 +102,7 @@ window.onload = function () {
         }
     }
 
+    // Enable audio on user interaction
     function enableAudio() {
         if (!isAudioEnabled) {
             assets.backgroundMusic.play();
@@ -106,6 +110,7 @@ window.onload = function () {
         }
     }
 
+    // Move player with arrow keys
     function movePlayer(e) {
         if (gameOver || isPaused) return;
         if (e.code === 'ArrowLeft') player.x -= 10;
@@ -114,12 +119,14 @@ window.onload = function () {
         if (e.code === 'ArrowDown') player.y += 10;
     }
 
+    // Move player with touch
     function movePlayerTouch(e) {
         if (gameOver || isPaused) return;
         player.x = e.touches[0].clientX;
         player.y = e.touches[0].clientY;
     }
 
+    // Aim gun with mouse
     function aimGun(e) {
         if (gameOver || isPaused) return;
         const rect = canvas.getBoundingClientRect();
@@ -128,6 +135,7 @@ window.onload = function () {
         player.angle = Math.atan2(mouseY - player.y, mouseX - player.x);
     }
 
+    // Activate laser
     function activateLaser() {
         if (!laserActive && !isPaused) {
             laserActive = true;
@@ -138,12 +146,14 @@ window.onload = function () {
         }
     }
 
+    // Deactivate laser
     function deactivateLaser() {
         laserActive = false;
         assets.laserSound.pause();
         assets.laserSound.currentTime = 0;
     }
 
+    // Check for laser collisions
     function checkLaserCollisions() {
         if (!laserActive || isPaused) return;
 
@@ -183,12 +193,6 @@ window.onload = function () {
         if (frozenDroneActive) {
             const frozenDrone = blackDrones.find(drone => drone.isFrozen);
             if (frozenDrone && lineCircleIntersection(player.x, player.y, laserEndX, laserEndY, frozenDrone.x, frozenDrone.y, 25)) {
-                // Draw white circle at the point of impact
-                context.beginPath();
-                context.arc(frozenDrone.x, frozenDrone.y, 50, 0, Math.PI * 2);
-                context.fillStyle = 'rgba(255, 255, 255, 0.5)';
-                context.fill();
-
                 // Trigger snow explosion
                 snowExplosion(frozenDrone.x, frozenDrone.y);
                 gameOver = true;
@@ -200,6 +204,7 @@ window.onload = function () {
         }
     }
 
+    // Line-circle intersection check
     function lineCircleIntersection(x1, y1, x2, y2, cx, cy, r) {
         const dx = x2 - x1;
         const dy = y2 - y1;
@@ -220,6 +225,7 @@ window.onload = function () {
         return (t1 >= 0 && t1 <= 1) || (t2 >= 0 && t2 <= 1);
     }
 
+    // Spawn game objects
     function spawnObjects() {
         if (isPaused || gameOver) return;
         drones.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 1 * speedMultiplier });
@@ -228,7 +234,7 @@ window.onload = function () {
         if (Math.random() < 0.2) bombs.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 2 * speedMultiplier });
         snowflakes.push({ x: Math.random() * canvas.width, y: 0, speed: Math.random() * 2 + 1, size: Math.random() * 10 + 5 });
 
-        // Spawn frozen drone at score 600 with increased complexity
+        // Spawn frozen drone at score 600
         if (score >= 600 && !frozenDroneActive) {
             blackDrones.push({ x: Math.random() * canvas.width, y: 0, speed: 3, isFrozen: true });
             frozenDroneActive = true;
@@ -236,6 +242,7 @@ window.onload = function () {
         }
     }
 
+    // Draw game objects
     function drawGameObjects() {
         context.clearRect(0, 0, canvas.width, canvas.height);
         context.fillStyle = '#001F3F';
@@ -329,6 +336,7 @@ window.onload = function () {
         }
     }
 
+    // Snow explosion effect
     function snowExplosion(x, y) {
         assets.snowExplosionSound.currentTime = 0;
         assets.snowExplosionSound.play();
@@ -356,6 +364,7 @@ window.onload = function () {
         snowExplosions.push(explosion);
     }
 
+    // Game loop
     function gameLoop() {
         if (gameOver || isPaused) {
             if (!gameOverSoundPlayed && gameOver) {
@@ -399,6 +408,7 @@ window.onload = function () {
         gameLoopId = requestAnimationFrame(gameLoop); // Store the loop ID
     }
 
+    // Start the game
     function startGame() {
         assets.backgroundMusic.loop = true;
         spawnIntervalId = setInterval(spawnObjects, 1000); // Store the spawn interval ID
