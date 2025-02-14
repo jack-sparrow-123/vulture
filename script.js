@@ -27,17 +27,17 @@ window.onload = function () {
             this.sounds[sound].pause();
         },
         toggle() {
-            this.isAudioEnabled = !this.isAudioEnabled;
-            const soundButton = document.getElementById('soundButton');
-            soundButton.textContent = `Sound: ${this.isAudioEnabled ? 'On' : 'Off'}`;
+    this.isAudioEnabled = !this.isAudioEnabled;
+    const soundButton = document.getElementById('soundButton');
+    soundButton.textContent = `Sound: ${this.isAudioEnabled ? 'On' : 'Off'}`;
 
-            if (this.isAudioEnabled) {
-                this.play('backgroundMusic');
-            } else {
-                Object.values(this.sounds).forEach(audio => audio.pause());
-            }
-        }
-    };
+    if (this.isAudioEnabled) {
+        this.audioContext.resume(); // Resume audio context
+        this.play('backgroundMusic'); // Restart background music
+    } else {
+        this.audioContext.suspend(); // Pause all audio
+    }
+}
 
     const assets = {
         player: new Image(),
