@@ -16,7 +16,7 @@ window.onload = function () {
             snowExplosionSound: new Audio('snow-explosion.mp3')
         },
         play(sound) {
-            if (this.isAudioEnabled && !this.sounds[sound].paused) {
+            if (this.isAudioEnabled) {
                 this.sounds[sound].currentTime = 0; // Reset audio to start
                 this.sounds[sound].play().catch(error => {
                     console.error("Audio play failed:", error);
