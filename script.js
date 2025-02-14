@@ -467,5 +467,4 @@ window.onload = function () {
     window.pauseGame = pauseGame;
     window.resumeGame = resumeGame;
     window.restartGame = restartGame;
-    window.toggleSound = () => audioManager.toggle();
 };
