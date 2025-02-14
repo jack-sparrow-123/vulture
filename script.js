@@ -47,6 +47,7 @@ window.onload = function () {
     let isPaused = false;
     let gameLoopId = null; // To store the game loop ID
     let spawnIntervalId = null; // To store the spawn interval ID
+    let canPlayAudio = true; // Flag to prevent overlapping audio play attempts
 
     // Store snow explosion effects
     let snowExplosions = [];
@@ -98,20 +99,27 @@ window.onload = function () {
         if (!isAudioEnabled) {
             assets.backgroundMusic.pause();
         } else if (!isPaused && !gameOver) {
-            if (assets.backgroundMusic.paused) {
-                assets.backgroundMusic.play().catch(error => {
-                    console.error("Audio play failed:", error);
-                });
-            }
+            playBackgroundMusic();
+        }
+    }
+
+    // Play background music safely
+    function playBackgroundMusic() {
+        if (canPlayAudio && assets.backgroundMusic.paused) {
+            canPlayAudio = false;
+            assets.backgroundMusic.play().then(() => {
+                canPlayAudio = true;
+            }).catch(error => {
+                console.error("Audio play failed:", error);
+                canPlayAudio = true;
+            });
         }
     }
 
     // Enable audio on user interaction
     function enableAudio() {
         if (!isAudioEnabled) {
-            assets.backgroundMusic.play().catch(error => {
-                console.error("Audio play failed:", error);
-            });
+            playBackgroundMusic();
             isAudioEnabled = true;
         }
     }
@@ -352,10 +360,12 @@ window.onload = function () {
 
     // Snow explosion effect
     function snowExplosion(x, y) {
-        assets.snowExplosionSound.currentTime = 0;
-        assets.snowExplosionSound.play().catch(error => {
-            console.error("Audio play failed:", error);
-        });
+        if (canPlayAudio) {
+            assets.snowExplosionSound.currentTime = 0;
+            assets.snowExplosionSound.play().catch(error => {
+                console.error("Audio play failed:", error);
+            });
+        }
 
         // Create snow explosion effect
         const explosion = {
@@ -427,6 +437,8 @@ window.onload = function () {
         checkLaserCollisions();
         gameLoopId = requestAnimationFrame(gameLoop); // Store the loop ID
     }
+
+    
 
     // Start the game
     function startGame() {
