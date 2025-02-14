@@ -438,8 +438,6 @@ window.onload = function () {
         gameLoopId = requestAnimationFrame(gameLoop); // Store the loop ID
     }
 
-    
-
     // Start the game
     function startGame() {
         assets.backgroundMusic.loop = true;
@@ -456,9 +454,7 @@ window.onload = function () {
     function resumeGame() {
         isPaused = false;
         if (isAudioEnabled && assets.backgroundMusic.paused) {
-            assets.backgroundMusic.play().catch(error => {
-                console.error("Audio play failed:", error);
-            });
+            playBackgroundMusic();
         }
         gameLoop(); // Restart the game loop
     }
@@ -484,9 +480,7 @@ window.onload = function () {
         // Reset audio
         assets.backgroundMusic.currentTime = 0;
         if (isAudioEnabled) {
-            assets.backgroundMusic.play().catch(error => {
-                console.error("Audio play failed:", error);
-            });
+            playBackgroundMusic();
         }
 
         // Restart the game loop
