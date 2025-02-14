@@ -75,44 +75,37 @@ window.onload = function () {
     canvas.addEventListener('mousemove', aimGun);
     canvas.addEventListener('touchmove', movePlayerTouch);
 
-    /const soundButton = document.querySelector('button[onclick="toggleSound()"]');
-soundButton.addEventListener('click', toggleSound);
+    // Add sound toggle functionality
+    const soundButton = document.querySelector('button[onclick="toggleSound()"]');
+    soundButton.addEventListener('click', toggleSound);
 
-// Set initial sound button text
-soundButton.textContent = `Sound: ${isAudioEnabled ? 'On' : 'Off'}`;
-
-// Toggle sound on/off
-function toggleSound() {
-    isAudioEnabled = !isAudioEnabled;
+    // Set initial sound button text
     soundButton.textContent = `Sound: ${isAudioEnabled ? 'On' : 'Off'}`;
 
-    // Mute/unmute all audio elements
-    Object.values(assets).forEach(audio => {
-        if (audio instanceof Audio) {
-            audio.muted = !isAudioEnabled;
-        }
-    });
+    // Toggle sound on/off
+    function toggleSound() {
+        isAudioEnabled = !isAudioEnabled;
+        soundButton.textContent = `Sound: ${isAudioEnabled ? 'On' : 'Off'}`;
 
-    // Pause background music if sound is off
-    if (!isAudioEnabled) {
-        assets.backgroundMusic.pause();
-    } else if (!isPaused && !gameOver) {
-        // Ensure audio is loaded before playing
-        if (assets.backgroundMusic.readyState >= 2) { // HAVE_CURRENT_DATA or higher
-            assets.backgroundMusic.play().catch(error => {
-                console.error("Audio play failed:", error);
-            });
-        } else {
-            assets.backgroundMusic.addEventListener('canplaythrough', () => {
+        // Mute/unmute all audio elements
+        Object.values(assets).forEach(audio => {
+            if (audio instanceof Audio) {
+                audio.muted = !isAudioEnabled;
+            }
+        });
+
+        // Pause background music if sound is off
+        if (!isAudioEnabled) {
+            assets.backgroundMusic.pause();
+        } else if (!isPaused && !gameOver) {
+            if (assets.backgroundMusic.paused) {
                 assets.backgroundMusic.play().catch(error => {
                     console.error("Audio play failed:", error);
                 });
-            }, { once: true });
+            }
         }
     }
-}
 
-    
     // Enable audio on user interaction
     function enableAudio() {
         if (!isAudioEnabled) {
@@ -450,9 +443,11 @@ function toggleSound() {
 
     function resumeGame() {
         isPaused = false;
-        assets.backgroundMusic.play().catch(error => {
-            console.error("Audio play failed:", error);
-        });
+        if (isAudioEnabled && assets.backgroundMusic.paused) {
+            assets.backgroundMusic.play().catch(error => {
+                console.error("Audio play failed:", error);
+            });
+        }
         gameLoop(); // Restart the game loop
     }
 
@@ -476,9 +471,11 @@ function toggleSound() {
 
         // Reset audio
         assets.backgroundMusic.currentTime = 0;
-        assets.backgroundMusic.play().catch(error => {
-            console.error("Audio play failed:", error);
-        });
+        if (isAudioEnabled) {
+            assets.backgroundMusic.play().catch(error => {
+                console.error("Audio play failed:", error);
+            });
+        }
 
         // Restart the game loop
         if (gameLoopId) {
