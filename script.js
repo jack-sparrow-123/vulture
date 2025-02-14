@@ -6,6 +6,7 @@ window.onload = function () {
 
     // Audio Manager
     const audioManager = {
+        isAudioEnabled: true, // Track if audio is enabled
         sounds: {
             laserSound: new Audio('laser-shot-.mp3'),
             explosionSound: new Audio('small-explosion-129477.mp3'),
@@ -15,13 +16,26 @@ window.onload = function () {
             snowExplosionSound: new Audio('snow-explosion.mp3')
         },
         play(sound) {
-            this.sounds[sound].currentTime = 0; // Reset audio to start
-            this.sounds[sound].play().catch(error => {
-                console.error("Audio play failed:", error);
-            });
+            if (this.isAudioEnabled) {
+                this.sounds[sound].currentTime = 0; // Reset audio to start
+                this.sounds[sound].play().catch(error => {
+                    console.error("Audio play failed:", error);
+                });
+            }
         },
         pause(sound) {
             this.sounds[sound].pause();
+        },
+        toggle() {
+            this.isAudioEnabled = !this.isAudioEnabled; // Toggle audio state
+            const soundButton = document.getElementById('soundButton');
+            soundButton.textContent = `Sound: ${this.isAudioEnabled ? 'On' : 'Off'}`;
+
+            if (this.isAudioEnabled) {
+                this.play('backgroundMusic'); // Resume background music if enabled
+            } else {
+                Object.values(this.sounds).forEach(audio => audio.pause()); // Pause all sounds
+            }
         }
     };
 
@@ -89,9 +103,18 @@ window.onload = function () {
     canvas.addEventListener('mousemove', aimGun);
     canvas.addEventListener('touchmove', movePlayerTouch);
 
+    // Add sound toggle functionality
+    const soundButton = document.getElementById('soundButton');
+    soundButton.addEventListener('click', () => audioManager.toggle());
+
+    // Set initial sound button text
+    soundButton.textContent = `Sound: ${audioManager.isAudioEnabled ? 'On' : 'Off'}`;
+
     // Enable audio on user interaction
     function enableAudio() {
-        audioManager.play('backgroundMusic');
+        if (!audioManager.isAudioEnabled) {
+            audioManager.toggle();
+        }
     }
 
     // Move player with arrow keys
@@ -400,7 +423,7 @@ window.onload = function () {
 
     function resumeGame() {
         isPaused = false;
-        if (audioManager.sounds.backgroundMusic.paused) {
+        if (audioManager.isAudioEnabled && audioManager.sounds.backgroundMusic.paused) {
             audioManager.play('backgroundMusic');
         }
         gameLoop(); // Restart the game loop
@@ -426,7 +449,9 @@ window.onload = function () {
 
         // Reset audio
         audioManager.sounds.backgroundMusic.currentTime = 0;
-        audioManager.play('backgroundMusic');
+        if (audioManager.isAudioEnabled) {
+            audioManager.play('backgroundMusic');
+        }
 
         // Restart the game loop
         if (gameLoopId) {
@@ -442,4 +467,5 @@ window.onload = function () {
     window.pauseGame = pauseGame;
     window.resumeGame = resumeGame;
     window.restartGame = restartGame;
+    window.toggleSound = () => audioManager.toggle();
 };
