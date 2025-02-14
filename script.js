@@ -4,6 +4,41 @@ window.onload = function () {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
+    // Audio Manager
+    const audioManager = {
+        isAudioEnabled: true,
+        sounds: {
+            laserSound: new Audio('laser-shot-.mp3'),
+            explosionSound: new Audio('small-explosion-129477.mp3'),
+            backgroundMusic: new Audio('lonely-winter-breeze-36867.mp3'),
+            gameOverSound: new Audio('gameover.mp3'),
+            freezingSound: new Audio('freeze-sound.mp3.mp3'),
+            snowExplosionSound: new Audio('snow-explosion.mp3')
+        },
+        play(sound) {
+            if (this.isAudioEnabled && !this.sounds[sound].paused) {
+                this.sounds[sound].currentTime = 0; // Reset audio to start
+                this.sounds[sound].play().catch(error => {
+                    console.error("Audio play failed:", error);
+                });
+            }
+        },
+        pause(sound) {
+            this.sounds[sound].pause();
+        },
+        toggle() {
+            this.isAudioEnabled = !this.isAudioEnabled;
+            const soundButton = document.getElementById('soundButton');
+            soundButton.textContent = `Sound: ${this.isAudioEnabled ? 'On' : 'Off'}`;
+
+            if (this.isAudioEnabled) {
+                this.play('backgroundMusic');
+            } else {
+                Object.values(this.sounds).forEach(audio => audio.pause());
+            }
+        }
+    };
+
     const assets = {
         player: new Image(),
         drone: new Image(),
@@ -12,13 +47,7 @@ window.onload = function () {
         explosion: new Image(),
         snowflake: new Image(),
         iceOverlay: new Image(),
-        frozenDrone: new Image(),
-        laserSound: new Audio('laser-shot-.mp3'),
-        explosionSound: new Audio('small-explosion-129477.mp3'),
-        backgroundMusic: new Audio('lonely-winter-breeze-36867.mp3'),
-        gameOverSound: new Audio('gameover.mp3'),
-        freezingSound: new Audio('freeze-sound.mp3.mp3'),
-        snowExplosionSound: new Audio('snow-explosion.mp3')
+        frozenDrone: new Image()
     };
 
     const imagePaths = {
@@ -36,7 +65,6 @@ window.onload = function () {
     let totalImages = Object.keys(imagePaths).length;
     let player = { x: canvas.width / 2, y: canvas.height / 2, size: 60, angle: 0 };
     let drones = [], blackDrones = [], bombs = [], explosions = [], snowflakes = [], score = 0;
-    let isAudioEnabled = true; // Sound is initially on
     let gameOver = false;
     let gameOverSoundPlayed = false;
     let speedMultiplier = 1;
@@ -47,7 +75,6 @@ window.onload = function () {
     let isPaused = false;
     let gameLoopId = null; // To store the game loop ID
     let spawnIntervalId = null; // To store the spawn interval ID
-    let canPlayAudio = true; // Flag to prevent overlapping audio play attempts
 
     // Store snow explosion effects
     let snowExplosions = [];
@@ -78,50 +105,15 @@ window.onload = function () {
 
     // Add sound toggle functionality
     const soundButton = document.getElementById('soundButton');
-    soundButton.addEventListener('click', toggleSound);
+    soundButton.addEventListener('click', () => audioManager.toggle());
 
     // Set initial sound button text
-    soundButton.textContent = `Sound: ${isAudioEnabled ? 'On' : 'Off'}`;
-
-    // Toggle sound on/off
-    function toggleSound() {
-        isAudioEnabled = !isAudioEnabled;
-        soundButton.textContent = `Sound: ${isAudioEnabled ? 'On' : 'Off'}`;
-
-        // Mute/unmute all audio elements
-        Object.values(assets).forEach(audio => {
-            if (audio instanceof Audio) {
-                audio.muted = !isAudioEnabled;
-            }
-        });
-
-        // Pause background music if sound is off
-        if (!isAudioEnabled) {
-            assets.backgroundMusic.pause();
-        } else if (!isPaused && !gameOver) {
-            playAudio(assets.backgroundMusic);
-        }
-    }
-
-    // Play audio safely
-    function playAudio(audio) {
-        if (canPlayAudio && audio.paused) {
-            canPlayAudio = false;
-            audio.currentTime = 0; // Reset audio to start
-            audio.play().then(() => {
-                canPlayAudio = true;
-            }).catch(error => {
-                console.error("Audio play failed:", error);
-                canPlayAudio = true;
-            });
-        }
-    }
+    soundButton.textContent = `Sound: ${audioManager.isAudioEnabled ? 'On' : 'Off'}`;
 
     // Enable audio on user interaction
     function enableAudio() {
-        if (!isAudioEnabled) {
-            playAudio(assets.backgroundMusic);
-            isAudioEnabled = true;
+        if (!audioManager.isAudioEnabled) {
+            audioManager.toggle();
         }
     }
 
@@ -154,15 +146,14 @@ window.onload = function () {
     function activateLaser() {
         if (!laserActive && !isPaused) {
             laserActive = true;
-            playAudio(assets.laserSound);
+            audioManager.play('laserSound');
         }
     }
 
     // Deactivate laser
     function deactivateLaser() {
         laserActive = false;
-        assets.laserSound.pause();
-        assets.laserSound.currentTime = 0;
+        audioManager.pause('laserSound');
     }
 
     // Check for laser collisions
@@ -184,16 +175,15 @@ window.onload = function () {
                     } else {
                         gameOver = true;
                         if (!gameOverSoundPlayed) {
-                            playAudio(assets.gameOverSound);
+                            audioManager.play('gameOverSound');
                             gameOverSoundPlayed = true;
                         }
                     }
 
-                    playAudio(assets.explosionSound);
+                    audioManager.play('explosionSound');
 
                     if (laserActive) {
-                        assets.laserSound.pause();
-                        assets.laserSound.currentTime = 0;
+                        audioManager.pause('laserSound');
                         laserActive = false;
                     }
                 }
@@ -209,7 +199,7 @@ window.onload = function () {
                     snowExplosion(frozenDrone.x, frozenDrone.y);
                     gameOver = true;
                     if (!gameOverSoundPlayed) {
-                        playAudio(assets.gameOverSound);
+                        audioManager.play('gameOverSound');
                         gameOverSoundPlayed = true;
                     }
                 }
@@ -350,7 +340,7 @@ window.onload = function () {
 
     // Snow explosion effect
     function snowExplosion(x, y) {
-        playAudio(assets.snowExplosionSound);
+        audioManager.play('snowExplosionSound');
 
         // Create snow explosion effect
         const explosion = {
@@ -379,7 +369,7 @@ window.onload = function () {
     function gameLoop() {
         if (gameOver || isPaused) {
             if (!gameOverSoundPlayed && gameOver) {
-                playAudio(assets.gameOverSound);
+                audioManager.play('gameOverSound');
                 gameOverSoundPlayed = true;
             }
             drawGameObjects();
@@ -403,7 +393,7 @@ window.onload = function () {
         if (score % 300 === 0 && score !== 0 && !isFreezing) {
             isFreezing = true;
             freezeTimer = 180; // 3 seconds at 60 FPS
-            playAudio(assets.freezingSound);
+            audioManager.play('freezingSound');
         }
 
         if (isFreezing) {
@@ -420,7 +410,7 @@ window.onload = function () {
 
     // Start the game
     function startGame() {
-        assets.backgroundMusic.loop = true;
+        audioManager.sounds.backgroundMusic.loop = true;
         spawnIntervalId = setInterval(spawnObjects, 1000); // Store the spawn interval ID
         gameLoop();
     }
@@ -428,13 +418,13 @@ window.onload = function () {
     // Game control functions
     function pauseGame() {
         isPaused = true;
-        assets.backgroundMusic.pause();
+        audioManager.pause('backgroundMusic');
     }
 
     function resumeGame() {
         isPaused = false;
-        if (isAudioEnabled && assets.backgroundMusic.paused) {
-            playAudio(assets.backgroundMusic);
+        if (audioManager.isAudioEnabled && audioManager.sounds.backgroundMusic.paused) {
+            audioManager.play('backgroundMusic');
         }
         gameLoop(); // Restart the game loop
     }
@@ -458,9 +448,9 @@ window.onload = function () {
         speedMultiplier = 1;
 
         // Reset audio
-        assets.backgroundMusic.currentTime = 0;
-        if (isAudioEnabled) {
-            playAudio(assets.backgroundMusic);
+        audioManager.sounds.backgroundMusic.currentTime = 0;
+        if (audioManager.isAudioEnabled) {
+            audioManager.play('backgroundMusic');
         }
 
         // Restart the game loop
@@ -477,5 +467,5 @@ window.onload = function () {
     window.pauseGame = pauseGame;
     window.resumeGame = resumeGame;
     window.restartGame = restartGame;
-    window.toggleSound = toggleSound;
+    window.toggleSound = () => audioManager.toggle();
 };
