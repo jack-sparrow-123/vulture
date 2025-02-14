@@ -99,15 +99,16 @@ window.onload = function () {
         if (!isAudioEnabled) {
             assets.backgroundMusic.pause();
         } else if (!isPaused && !gameOver) {
-            playBackgroundMusic();
+            playAudio(assets.backgroundMusic);
         }
     }
 
-    // Play background music safely
-    function playBackgroundMusic() {
-        if (canPlayAudio && assets.backgroundMusic.paused) {
+    // Play audio safely
+    function playAudio(audio) {
+        if (canPlayAudio && audio.paused) {
             canPlayAudio = false;
-            assets.backgroundMusic.play().then(() => {
+            audio.currentTime = 0; // Reset audio to start
+            audio.play().then(() => {
                 canPlayAudio = true;
             }).catch(error => {
                 console.error("Audio play failed:", error);
@@ -119,7 +120,7 @@ window.onload = function () {
     // Enable audio on user interaction
     function enableAudio() {
         if (!isAudioEnabled) {
-            playBackgroundMusic();
+            playAudio(assets.backgroundMusic);
             isAudioEnabled = true;
         }
     }
@@ -153,12 +154,7 @@ window.onload = function () {
     function activateLaser() {
         if (!laserActive && !isPaused) {
             laserActive = true;
-            if (assets.laserSound.paused) {
-                assets.laserSound.currentTime = 0;
-                assets.laserSound.play().catch(error => {
-                    console.error("Audio play failed:", error);
-                });
-            }
+            playAudio(assets.laserSound);
         }
     }
 
@@ -188,17 +184,12 @@ window.onload = function () {
                     } else {
                         gameOver = true;
                         if (!gameOverSoundPlayed) {
-                            assets.gameOverSound.play().catch(error => {
-                                console.error("Audio play failed:", error);
-                            });
+                            playAudio(assets.gameOverSound);
                             gameOverSoundPlayed = true;
                         }
                     }
 
-                    assets.explosionSound.currentTime = 0;
-                    assets.explosionSound.play().catch(error => {
-                        console.error("Audio play failed:", error);
-                    });
+                    playAudio(assets.explosionSound);
 
                     if (laserActive) {
                         assets.laserSound.pause();
@@ -218,9 +209,7 @@ window.onload = function () {
                     snowExplosion(frozenDrone.x, frozenDrone.y);
                     gameOver = true;
                     if (!gameOverSoundPlayed) {
-                        assets.gameOverSound.play().catch(error => {
-                            console.error("Audio play failed:", error);
-                        });
+                        playAudio(assets.gameOverSound);
                         gameOverSoundPlayed = true;
                     }
                 }
@@ -361,12 +350,7 @@ window.onload = function () {
 
     // Snow explosion effect
     function snowExplosion(x, y) {
-        if (canPlayAudio) {
-            assets.snowExplosionSound.currentTime = 0;
-            assets.snowExplosionSound.play().catch(error => {
-                console.error("Audio play failed:", error);
-            });
-        }
+        playAudio(assets.snowExplosionSound);
 
         // Create snow explosion effect
         const explosion = {
@@ -395,9 +379,7 @@ window.onload = function () {
     function gameLoop() {
         if (gameOver || isPaused) {
             if (!gameOverSoundPlayed && gameOver) {
-                assets.gameOverSound.play().catch(error => {
-                    console.error("Audio play failed:", error);
-                });
+                playAudio(assets.gameOverSound);
                 gameOverSoundPlayed = true;
             }
             drawGameObjects();
@@ -421,10 +403,7 @@ window.onload = function () {
         if (score % 300 === 0 && score !== 0 && !isFreezing) {
             isFreezing = true;
             freezeTimer = 180; // 3 seconds at 60 FPS
-            assets.freezingSound.currentTime = 0;
-            assets.freezingSound.play().catch(error => {
-                console.error("Audio play failed:", error);
-            });
+            playAudio(assets.freezingSound);
         }
 
         if (isFreezing) {
@@ -455,7 +434,7 @@ window.onload = function () {
     function resumeGame() {
         isPaused = false;
         if (isAudioEnabled && assets.backgroundMusic.paused) {
-            playBackgroundMusic();
+            playAudio(assets.backgroundMusic);
         }
         gameLoop(); // Restart the game loop
     }
@@ -481,7 +460,7 @@ window.onload = function () {
         // Reset audio
         assets.backgroundMusic.currentTime = 0;
         if (isAudioEnabled) {
-            playBackgroundMusic();
+            playAudio(assets.backgroundMusic);
         }
 
         // Restart the game loop
