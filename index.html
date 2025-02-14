@@ -86,11 +86,14 @@
         function goHome() {
             window.location.href = 'https://jack-sparrow-123.github.io/homepage/';
         }
+
+         window.toggleSound = () => audioManager.toggle();
     </script>
     <div class="settings-panel">
         <button onclick="pauseGame()">Pause</button>
         <button onclick="resumeGame()">Resume</button>
         <button onclick="restartGame()">Restart</button>
+        <button onclick="toggleSound()">Toggle Sound</button>
     </div>
 
 
