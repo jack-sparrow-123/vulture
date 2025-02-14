@@ -6,7 +6,6 @@ window.onload = function () {
 
     // Audio Manager
     const audioManager = {
-        isAudioEnabled: true,
         sounds: {
             laserSound: new Audio('laser-shot-.mp3'),
             explosionSound: new Audio('small-explosion-129477.mp3'),
@@ -16,26 +15,13 @@ window.onload = function () {
             snowExplosionSound: new Audio('snow-explosion.mp3')
         },
         play(sound) {
-            if (this.isAudioEnabled) {
-                this.sounds[sound].currentTime = 0; // Reset audio to start
-                this.sounds[sound].play().catch(error => {
-                    console.error("Audio play failed:", error);
-                });
-            }
+            this.sounds[sound].currentTime = 0; // Reset audio to start
+            this.sounds[sound].play().catch(error => {
+                console.error("Audio play failed:", error);
+            });
         },
         pause(sound) {
             this.sounds[sound].pause();
-        },
-        toggle() {
-            this.isAudioEnabled = !this.isAudioEnabled;
-            const soundButton = document.getElementById('soundButton');
-            soundButton.textContent = `Sound: ${this.isAudioEnabled ? 'On' : 'Off'}`;
-
-            if (this.isAudioEnabled) {
-                this.play('backgroundMusic');
-            } else {
-                Object.values(this.sounds).forEach(audio => audio.pause());
-            }
         }
     };
 
@@ -103,18 +89,9 @@ window.onload = function () {
     canvas.addEventListener('mousemove', aimGun);
     canvas.addEventListener('touchmove', movePlayerTouch);
 
-    // Add sound toggle functionality
-    const soundButton = document.getElementById('soundButton');
-    soundButton.addEventListener('click', () => audioManager.toggle());
-
-    // Set initial sound button text
-    soundButton.textContent = `Sound: ${audioManager.isAudioEnabled ? 'On' : 'Off'}`;
-
     // Enable audio on user interaction
     function enableAudio() {
-        if (!audioManager.isAudioEnabled) {
-            audioManager.toggle();
-        }
+        audioManager.play('backgroundMusic');
     }
 
     // Move player with arrow keys
@@ -423,7 +400,7 @@ window.onload = function () {
 
     function resumeGame() {
         isPaused = false;
-        if (audioManager.isAudioEnabled && audioManager.sounds.backgroundMusic.paused) {
+        if (audioManager.sounds.backgroundMusic.paused) {
             audioManager.play('backgroundMusic');
         }
         gameLoop(); // Restart the game loop
@@ -449,9 +426,7 @@ window.onload = function () {
 
         // Reset audio
         audioManager.sounds.backgroundMusic.currentTime = 0;
-        if (audioManager.isAudioEnabled) {
-            audioManager.play('backgroundMusic');
-        }
+        audioManager.play('backgroundMusic');
 
         // Restart the game loop
         if (gameLoopId) {
@@ -467,5 +442,4 @@ window.onload = function () {
     window.pauseGame = pauseGame;
     window.resumeGame = resumeGame;
     window.restartGame = restartGame;
-    window.toggleSound = () => audioManager.toggle();
 };
