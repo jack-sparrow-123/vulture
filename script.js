@@ -1,45 +1,43 @@
-// Global audioManager object
-const audioManager = {
-    isAudioEnabled: true,
-    sounds: {
-        laserSound: new Audio('laser-shot-.mp3'),
-        explosionSound: new Audio('small-explosion-129477.mp3'),
-        backgroundMusic: new Audio('lonely-winter-breeze-36867.mp3'),
-        gameOverSound: new Audio('gameover.mp3'),
-        freezingSound: new Audio('freeze-sound.mp3.mp3'),
-        snowExplosionSound: new Audio('snow-explosion.mp3')
-    },
-    play(sound) {
-        if (this.isAudioEnabled && this.sounds[sound].paused) {
-            this.sounds[sound].currentTime = 0; // Reset audio to start
-            this.sounds[sound].play().catch(error => {
-                console.error("Audio play failed:", error);
-            });
-        }
-    },
-    pause(sound) {
-        if (!this.sounds[sound].paused) {
-            this.sounds[sound].pause();
-        }
-    },
-    toggle() {
-        this.isAudioEnabled = !this.isAudioEnabled;
-        const soundButton = document.getElementById('soundButton');
-        soundButton.textContent = `Sound: ${this.isAudioEnabled ? 'On' : 'Off'}`;
-
-        if (this.isAudioEnabled) {
-            this.play('backgroundMusic');
-        } else {
-            Object.values(this.sounds).forEach(audio => this.pause(audio));
-        }
-    }
-};
-
 window.onload = function () {
     const canvas = document.getElementById("gameCanvas");
     const context = canvas.getContext("2d");
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+
+    // Audio Manager
+    const audioManager = {
+        isAudioEnabled: true,
+        sounds: {
+            laserSound: new Audio('laser-shot-.mp3'),
+            explosionSound: new Audio('small-explosion-129477.mp3'),
+            backgroundMusic: new Audio('lonely-winter-breeze-36867.mp3'),
+            gameOverSound: new Audio('gameover.mp3'),
+            freezingSound: new Audio('freeze-sound.mp3.mp3'),
+            snowExplosionSound: new Audio('snow-explosion.mp3')
+        },
+        play(sound) {
+            if (this.isAudioEnabled) {
+                this.sounds[sound].currentTime = 0; // Reset audio to start
+                this.sounds[sound].play().catch(error => {
+                    console.error("Audio play failed:", error);
+                });
+            }
+        },
+        pause(sound) {
+            this.sounds[sound].pause();
+        },
+        toggle() {
+            this.isAudioEnabled = !this.isAudioEnabled;
+            const soundButton = document.getElementById('soundButton');
+            soundButton.textContent = `Sound: ${this.isAudioEnabled ? 'On' : 'Off'}`;
+
+            if (this.isAudioEnabled) {
+                this.play('backgroundMusic');
+            } else {
+                Object.values(this.sounds).forEach(audio => audio.pause());
+            }
+        }
+    };
 
     const assets = {
         player: new Image(),
