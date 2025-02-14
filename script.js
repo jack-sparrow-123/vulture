@@ -6,7 +6,7 @@ window.onload = function () {
 
     // Audio Manager
     const audioManager = {
-        isAudioEnabled: true, // Track if audio is enabled
+        isAudioEnabled: true, // Track whether audio is enabled
         sounds: {
             laserSound: new Audio('laser-shot-.mp3'),
             explosionSound: new Audio('small-explosion-129477.mp3'),
@@ -467,4 +467,5 @@ window.onload = function () {
     window.pauseGame = pauseGame;
     window.resumeGame = resumeGame;
     window.restartGame = restartGame;
+    window.toggleSound = () => audioManager.toggle();
 };
