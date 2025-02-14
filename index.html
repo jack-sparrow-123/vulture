@@ -87,7 +87,34 @@
             window.location.href = 'https://jack-sparrow-123.github.io/homepage/';
         }
 
-         window.toggleSound = () => audioManager.toggle();
+        class AudioManager {
+        constructor(){
+            this.sounds = {};
+            this.isAudioEnabled = true;
+            this.debounceTimeout = null;
+            this.isPlaying = false;
+        }
+        play(sound) {
+            if (this.isAudioEnabled) {
+                this.sounds[sound].currentTime = 0;
+                this.isPlaying = true;
+                this.sounds[sound].play().catch(error => {
+                    console.error("Audio play failed:", error);
+                }).finally(()=>{
+                    this.isPlaying = false;
+                });
+            }
+        }
+
+        pause(sound) {
+            clearTimeout(this.debounceTimeout);
+            this.debounceTimeout = setTimeout(() => {
+              if(this.isPlaying) return;
+              this.sounds[sound].pause();
+              this.sounds[sound].currentTime = 0;
+            }, 100); // 100ms delay (adjust as needed)
+        }
+    }
     </script>
     <div class="settings-panel">
         <button onclick="pauseGame()">Pause</button>
