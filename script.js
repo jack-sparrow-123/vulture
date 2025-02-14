@@ -26,20 +26,18 @@ window.onload = function () {
         pause(sound) {
             this.sounds[sound].pause();
         },
-       toggle() {
-    this.isAudioEnabled = !this.isAudioEnabled; // Toggle audio state
-    const soundButton = document.getElementById('soundButton');
+        toggle() {
+            this.isAudioEnabled = !this.isAudioEnabled;
+            const soundButton = document.getElementById('soundButton');
+            soundButton.textContent = `Sound: ${this.isAudioEnabled ? 'On' : 'Off'}`;
 
-    if (this.isAudioEnabled) {
-        this.audioContext.resume().then(() => {
-            this.play('backgroundMusic'); // Restart background music
-        });
-        soundButton.textContent = 'Sound: On';
-    } else {
-        this.audioContext.suspend();
-        soundButton.textContent = 'Sound: Off';
-    }
-}
+            if (this.isAudioEnabled) {
+                this.play('backgroundMusic');
+            } else {
+                Object.values(this.sounds).forEach(audio => audio.pause());
+            }
+        }
+    };
 
     const assets = {
         player: new Image(),
