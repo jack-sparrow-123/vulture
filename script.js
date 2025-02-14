@@ -98,14 +98,18 @@ window.onload = function () {
         if (!isAudioEnabled) {
             assets.backgroundMusic.pause();
         } else if (!isPaused && !gameOver) {
-            assets.backgroundMusic.play();
+            assets.backgroundMusic.play().catch(error => {
+                console.error("Audio play failed:", error);
+            });
         }
     }
 
     // Enable audio on user interaction
     function enableAudio() {
         if (!isAudioEnabled) {
-            assets.backgroundMusic.play();
+            assets.backgroundMusic.play().catch(error => {
+                console.error("Audio play failed:", error);
+            });
             isAudioEnabled = true;
         }
     }
@@ -141,7 +145,9 @@ window.onload = function () {
             laserActive = true;
             if (assets.laserSound.paused) {
                 assets.laserSound.currentTime = 0;
-                assets.laserSound.play();
+                assets.laserSound.play().catch(error => {
+                    console.error("Audio play failed:", error);
+                });
             }
         }
     }
@@ -172,13 +178,17 @@ window.onload = function () {
                     } else {
                         gameOver = true;
                         if (!gameOverSoundPlayed) {
-                            assets.gameOverSound.play();
+                            assets.gameOverSound.play().catch(error => {
+                                console.error("Audio play failed:", error);
+                            });
                             gameOverSoundPlayed = true;
                         }
                     }
 
                     assets.explosionSound.currentTime = 0;
-                    assets.explosionSound.play();
+                    assets.explosionSound.play().catch(error => {
+                        console.error("Audio play failed:", error);
+                    });
 
                     if (laserActive) {
                         assets.laserSound.pause();
@@ -197,7 +207,9 @@ window.onload = function () {
                 snowExplosion(frozenDrone.x, frozenDrone.y);
                 gameOver = true;
                 if (!gameOverSoundPlayed) {
-                    assets.gameOverSound.play();
+                    assets.gameOverSound.play().catch(error => {
+                        console.error("Audio play failed:", error);
+                    });
                     gameOverSoundPlayed = true;
                 }
             }
@@ -339,7 +351,9 @@ window.onload = function () {
     // Snow explosion effect
     function snowExplosion(x, y) {
         assets.snowExplosionSound.currentTime = 0;
-        assets.snowExplosionSound.play();
+        assets.snowExplosionSound.play().catch(error => {
+            console.error("Audio play failed:", error);
+        });
 
         // Create snow explosion effect
         const explosion = {
@@ -368,7 +382,9 @@ window.onload = function () {
     function gameLoop() {
         if (gameOver || isPaused) {
             if (!gameOverSoundPlayed && gameOver) {
-                assets.gameOverSound.play();
+                assets.gameOverSound.play().catch(error => {
+                    console.error("Audio play failed:", error);
+                });
                 gameOverSoundPlayed = true;
             }
             drawGameObjects();
@@ -393,7 +409,9 @@ window.onload = function () {
             isFreezing = true;
             freezeTimer = 180; // 3 seconds at 60 FPS
             assets.freezingSound.currentTime = 0;
-            assets.freezingSound.play();
+            assets.freezingSound.play().catch(error => {
+                console.error("Audio play failed:", error);
+            });
         }
 
         if (isFreezing) {
@@ -423,7 +441,9 @@ window.onload = function () {
 
     function resumeGame() {
         isPaused = false;
-        assets.backgroundMusic.play();
+        assets.backgroundMusic.play().catch(error => {
+            console.error("Audio play failed:", error);
+        });
         gameLoop(); // Restart the game loop
     }
 
@@ -447,7 +467,9 @@ window.onload = function () {
 
         // Reset audio
         assets.backgroundMusic.currentTime = 0;
-        assets.backgroundMusic.play();
+        assets.backgroundMusic.play().catch(error => {
+            console.error("Audio play failed:", error);
+        });
 
         // Restart the game loop
         if (gameLoopId) {
