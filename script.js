@@ -26,16 +26,18 @@ window.onload = function () {
         pause(sound) {
             this.sounds[sound].pause();
         },
-        toggle() {
-    this.isAudioEnabled = !this.isAudioEnabled;
+       toggle() {
+    this.isAudioEnabled = !this.isAudioEnabled; // Toggle audio state
     const soundButton = document.getElementById('soundButton');
-    soundButton.textContent = `Sound: ${this.isAudioEnabled ? 'On' : 'Off'}`;
 
     if (this.isAudioEnabled) {
-        this.audioContext.resume(); // Resume audio context
-        this.play('backgroundMusic'); // Restart background music
+        this.audioContext.resume().then(() => {
+            this.play('backgroundMusic'); // Restart background music
+        });
+        soundButton.textContent = 'Sound: On';
     } else {
-        this.audioContext.suspend(); // Pause all audio
+        this.audioContext.suspend();
+        soundButton.textContent = 'Sound: Off';
     }
 }
 
