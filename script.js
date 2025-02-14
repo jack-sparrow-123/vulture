@@ -75,35 +75,44 @@ window.onload = function () {
     canvas.addEventListener('mousemove', aimGun);
     canvas.addEventListener('touchmove', movePlayerTouch);
 
-    // Add sound toggle functionality
-    const soundButton = document.querySelector('button[onclick="toggleSound()"]');
-    soundButton.addEventListener('click', toggleSound);
+    /const soundButton = document.querySelector('button[onclick="toggleSound()"]');
+soundButton.addEventListener('click', toggleSound);
 
-    // Set initial sound button text
+// Set initial sound button text
+soundButton.textContent = `Sound: ${isAudioEnabled ? 'On' : 'Off'}`;
+
+// Toggle sound on/off
+function toggleSound() {
+    isAudioEnabled = !isAudioEnabled;
     soundButton.textContent = `Sound: ${isAudioEnabled ? 'On' : 'Off'}`;
 
-    // Toggle sound on/off
-    function toggleSound() {
-        isAudioEnabled = !isAudioEnabled;
-        soundButton.textContent = `Sound: ${isAudioEnabled ? 'On' : 'Off'}`;
+    // Mute/unmute all audio elements
+    Object.values(assets).forEach(audio => {
+        if (audio instanceof Audio) {
+            audio.muted = !isAudioEnabled;
+        }
+    });
 
-        // Mute/unmute all audio elements
-        Object.values(assets).forEach(audio => {
-            if (audio instanceof Audio) {
-                audio.muted = !isAudioEnabled;
-            }
-        });
-
-        // Pause background music if sound is off
-        if (!isAudioEnabled) {
-            assets.backgroundMusic.pause();
-        } else if (!isPaused && !gameOver) {
+    // Pause background music if sound is off
+    if (!isAudioEnabled) {
+        assets.backgroundMusic.pause();
+    } else if (!isPaused && !gameOver) {
+        // Ensure audio is loaded before playing
+        if (assets.backgroundMusic.readyState >= 2) { // HAVE_CURRENT_DATA or higher
             assets.backgroundMusic.play().catch(error => {
                 console.error("Audio play failed:", error);
             });
+        } else {
+            assets.backgroundMusic.addEventListener('canplaythrough', () => {
+                assets.backgroundMusic.play().catch(error => {
+                    console.error("Audio play failed:", error);
+                });
+            }, { once: true });
         }
     }
+}
 
+    
     // Enable audio on user interaction
     function enableAudio() {
         if (!isAudioEnabled) {
