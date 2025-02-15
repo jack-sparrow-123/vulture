@@ -42,6 +42,7 @@ window.onload = function () {
     // Preload audio files
     Object.values(audioManager.sounds).forEach(audio => {
         audio.preload = 'auto';
+        audio.load(); // Force load the audio files
     });
 
     const assets = {
