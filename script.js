@@ -18,12 +18,12 @@ window.onload = function () {
     const audioManager = {
         isAudioEnabled: true, // Track whether audio is enabled
         sounds: {
-            laserSound: new Audio('laser-shot-.mp3'),
-            explosionSound: new Audio('small-explosion-129477.mp3'),
-            backgroundMusic: new Audio('lonely-winter-breeze-36867.mp3'),
-            gameOverSound: new Audio('gameover.mp3'),
-            freezingSound: new Audio('freeze-sound.mp3.mp3'),
-            snowExplosionSound: new Audio('snow-explosion.mp3')
+            laserSound: document.getElementById('laserSound'),
+            explosionSound: document.getElementById('explosionSound'),
+            backgroundMusic: document.getElementById('backgroundMusic'),
+            gameOverSound: document.getElementById('gameOverSound'),
+            freezingSound: document.getElementById('freezingSound'),
+            snowExplosionSound: document.getElementById('snowExplosionSound')
         },
         play(sound) {
             if (this.isAudioEnabled) {
