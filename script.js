@@ -16,7 +16,7 @@ window.onload = function () {
 
     // Audio Manager
     const audioManager = {
-        isAudioEnabled: true, // Track whether audio is enabled
+        isAudioEnabled: false, // Audio starts disabled until user interaction
         sounds: {
             laserSound: document.getElementById('laserSound'),
             explosionSound: document.getElementById('explosionSound'),
