@@ -1,8 +1,18 @@
 window.onload = function () {
     const canvas = document.getElementById("gameCanvas");
     const context = canvas.getContext("2d");
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+
+    // Set initial canvas dimensions
+    function setCanvasDimensions() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    setCanvasDimensions(); // Set dimensions on load
+
+    // Handle window resizing
+    window.addEventListener('resize', () => {
+        setCanvasDimensions();
+    });
 
     // Audio Manager
     const audioManager = {
@@ -248,7 +258,7 @@ window.onload = function () {
 
     // Draw game objects
     function drawGameObjects() {
-        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
         context.fillStyle = '#001F3F';
         context.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -313,7 +323,7 @@ window.onload = function () {
         // Draw score
         context.fillStyle = 'white';
         context.font = '20px Arial';
-        context.fillText(`Score: ${score}`, 20, 30);
+        context.fillText(`Score: ${score}`, 20, 30); // Fixed position for score
 
         // Draw "Game Over" message
         if (gameOver) {
