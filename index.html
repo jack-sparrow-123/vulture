@@ -87,46 +87,7 @@ canvas {
   if (window.location.pathname === "/vulture/" || window.location.pathname === "https://jack-sparrow-123.github.io/vulture/index.html") {
     window.location.href = "https://jack-sparrow-123.github.io/homepage/"; 
   }
-</script>
-    
-
-    <script src="https://sdk.crazygames.com/crazygames.js"></script>
-
-    <script>
-        // Initialize the CrazyGames SDK
-        const crazyGamesSDK = new CrazyGames.SDK();
-
-        // Check if the SDK is loaded
-        crazyGamesSDK.init().then(() => {
-            console.log('CrazyGames SDK initialized');
-            // Your game logic here
-        }).catch((error) => {
-            console.error('CrazyGames SDK failed to initialize', error);
-        });
-
-        // Example of displaying a banner ad
-        function showBannerAd() {
-            crazyGamesSDK.requestAd('banner').then(() => {
-                console.log('Banner ad displayed');
-            }).catch((error) => {
-                console.error('Failed to display banner ad', error);
-            });
-        }
-
-        // Example of displaying a rewarded video ad
-        function showRewardedAd() {
-            crazyGamesSDK.requestAd('rewarded').then(() => {
-                console.log('Rewarded video ad displayed');
-                // Reward the player here
-            }).catch((error) => {
-                console.error('Failed to display rewarded video ad', error);
-            });
-        }
-
-        // Call the ad functions
-        showBannerAd();
-        showRewardedAd();
-    </script> 
+</script>       
 </body>
 </html>
 
