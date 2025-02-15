@@ -18,28 +18,31 @@ window.onload = function () {
     const audioManager = {
         isAudioEnabled: false, // Audio starts disabled until user interaction
         sounds: {
-            laserSound: document.getElementById('laserSound'),
-            explosionSound: document.getElementById('explosionSound'),
-            backgroundMusic: document.getElementById('backgroundMusic'),
-            gameOverSound: document.getElementById('gameOverSound'),
-            freezingSound: document.getElementById('freezingSound'),
-            snowExplosionSound: document.getElementById('snowExplosionSound')
+            laserSound: new Audio('laserSound.mp3'),
+            explosionSound: new Audio('explosionSound.mp3'),
+            backgroundMusic: new Audio('backgroundMusic.mp3'),
+            gameOverSound: new Audio('gameOverSound.mp3'),
+            freezingSound: new Audio('freezingSound.mp3'),
+            snowExplosionSound: new Audio('snowExplosionSound.mp3')
         },
         play(sound) {
             if (this.isAudioEnabled) {
                 const audio = this.sounds[sound];
-                if (audio.paused) { // Only play if the audio is not already playing
-                    audio.currentTime = 0; // Reset audio to start
-                    audio.play().catch(error => {
-                        console.error("Audio play failed:", error);
-                    });
-                }
+                audio.currentTime = 0; // Reset audio to start
+                audio.play().catch(error => {
+                    console.error("Audio play failed:", error);
+                });
             }
         },
         pause(sound) {
             this.sounds[sound].pause();
         }
     };
+
+    // Preload audio files
+    Object.values(audioManager.sounds).forEach(audio => {
+        audio.preload = 'auto';
+    });
 
     const assets = {
         player: new Image(),
