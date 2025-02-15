@@ -36,17 +36,6 @@ window.onload = function () {
         },
         pause(sound) {
             this.sounds[sound].pause();
-        },
-        toggle() {
-            this.isAudioEnabled = !this.isAudioEnabled; // Toggle audio state
-            const soundButton = document.getElementById('soundButton');
-            soundButton.textContent = `Sound: ${this.isAudioEnabled ? 'On' : 'Off'}`;
-
-            if (this.isAudioEnabled) {
-                this.play('backgroundMusic'); // Resume background music if enabled
-            } else {
-                Object.values(this.sounds).forEach(audio => audio.pause()); // Pause all sounds
-            }
         }
     };
 
@@ -114,17 +103,11 @@ window.onload = function () {
     canvas.addEventListener('mousemove', aimGun);
     canvas.addEventListener('touchmove', movePlayerTouch);
 
-    // Add sound toggle functionality
-    const soundButton = document.getElementById('soundButton');
-    soundButton.addEventListener('click', () => audioManager.toggle());
-
-    // Set initial sound button text
-    soundButton.textContent = `Sound: ${audioManager.isAudioEnabled ? 'On' : 'Off'}`;
-
     // Enable audio on user interaction
     function enableAudio() {
         if (!audioManager.isAudioEnabled) {
-            audioManager.toggle();
+            audioManager.isAudioEnabled = true;
+            audioManager.play('backgroundMusic');
         }
     }
 
@@ -478,5 +461,4 @@ window.onload = function () {
     window.pauseGame = pauseGame;
     window.resumeGame = resumeGame;
     window.restartGame = restartGame;
-    window.toggleSound = () => audioManager.toggle();
 };
