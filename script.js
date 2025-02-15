@@ -28,10 +28,12 @@ window.onload = function () {
         play(sound) {
             if (this.isAudioEnabled) {
                 const audio = this.sounds[sound];
-                audio.currentTime = 0; // Reset audio to start
-                audio.play().catch(error => {
-                    console.error("Audio play failed:", error);
-                });
+                if (audio.paused) { // Only play if the audio is not already playing
+                    audio.currentTime = 0; // Reset audio to start
+                    audio.play().catch(error => {
+                        console.error("Audio play failed:", error);
+                    });
+                }
             }
         },
         pause(sound) {
@@ -303,10 +305,11 @@ window.onload = function () {
             });
         });
 
-        // Draw score
+        // Draw score (fixed position at top-left corner)
         context.fillStyle = 'white';
         context.font = '20px Arial';
-        context.fillText(`Score: ${score}`, 20, 30); // Fixed position for score
+        context.textAlign = 'left';
+        context.fillText(`Score: ${score}`, 20, 30);
 
         // Draw "Game Over" message
         if (gameOver) {
