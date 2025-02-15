@@ -18,12 +18,12 @@ window.onload = function () {
     const audioManager = {
         isAudioEnabled: false, // Audio starts disabled until user interaction
         sounds: {
-            laserSound: new Audio('laserSound.mp3'),
-            explosionSound: new Audio('explosionSound.mp3'),
-            backgroundMusic: new Audio('backgroundMusic.mp3'),
-            gameOverSound: new Audio('gameOverSound.mp3'),
-            freezingSound: new Audio('freezingSound.mp3'),
-            snowExplosionSound: new Audio('snowExplosionSound.mp3')
+            laserSound: new Audio('laser-shot-.mp3'),
+            explosionSound: new Audio('small-explosion-129477.mp3'),
+            backgroundMusic: new Audio('lonely-winter-breeze-36867.mp3'),
+            gameOverSound: new Audio('gameover.mp3'),
+            freezingSound: new Audio('freeze-sound.mp3.mp3'),
+            snowExplosionSound: new Audio('snow-explosion.mp3')
         },
         play(sound) {
             if (this.isAudioEnabled) {
