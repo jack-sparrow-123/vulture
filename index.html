@@ -76,7 +76,6 @@ canvas {
         <button onclick="pauseGame()">Pause</button>
         <button onclick="resumeGame()">Resume</button>
         <button onclick="restartGame()">Restart</button>
-        <button onclick="toggleMute()">Mute/Unmute</button>
     </div>
  <audio id="laserSound" src="laser-shot-.mp3" preload="auto"></audio>
     <audio id="explosionSound" src="small-explosion-129477.mp3" preload="auto"></audio>
@@ -84,15 +83,6 @@ canvas {
     <audio id="gameOverSound" src="gameover.mp3" preload="auto"></audio>
     <audio id="freezingSound" src="freeze-sound.mp3.mp3" preload="auto"></audio>
     <audio id="snowExplosionSound" src="snow-explosion.mp3" preload="auto"></audio>
-    <script>
-        function toggleMute() {
-            const sounds = document.querySelectorAll('audio');
-            sounds.forEach(sound => {
-                sound.muted = !sound.muted;
-            });
-        }
-    </script>
-
 <script>
   if (window.location.pathname === "/vulture/" || window.location.pathname === "https://jack-sparrow-123.github.io/vulture/index.html") {
     window.location.href = "https://jack-sparrow-123.github.io/homepage/"; 
