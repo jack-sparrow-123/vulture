@@ -17,8 +17,9 @@ window.onload = function () {
         },
         play(sound) {
             if (this.isAudioEnabled) {
-                this.sounds[sound].currentTime = 0; // Reset audio to start
-                this.sounds[sound].play().catch(error => {
+                const audio = this.sounds[sound];
+                audio.currentTime = 0; // Reset audio to start
+                audio.play().catch(error => {
                     console.error("Audio play failed:", error);
                 });
             }
